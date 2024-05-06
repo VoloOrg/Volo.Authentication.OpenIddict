@@ -174,7 +174,6 @@ namespace AuthenticationProject
 
             // Configure the HTTP request pipeline.
 
-
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors(o => o.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
