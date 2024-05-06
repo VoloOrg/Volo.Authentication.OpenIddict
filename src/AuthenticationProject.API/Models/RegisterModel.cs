@@ -1,4 +1,4 @@
-﻿namespace AuthenticationProject.Models
+﻿namespace AuthenticationProject.API.Models
 {
     public class RegisterModel
     {

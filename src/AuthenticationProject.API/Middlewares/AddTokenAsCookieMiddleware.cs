@@ -1,14 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Threading;
 using AuthenticationProject.API.Options;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using System.Text;
-using System.Text.Json;
-using AuthenticationProject.API.Models;
-using Polly;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -129,6 +123,40 @@ namespace AuthenticationProject.API.Middlewares
                     throw new UnauthorizedAccessException("refresh token ended");
                 }
             }
+            else if (context.Request.Path == "/auth/account/register"
+                && context.Request.Cookies.TryGetValue("access_token", out var tokenForRegister)
+                && !string.IsNullOrWhiteSpace(tokenForRegister))
+            {
+                HttpClient client = new HttpClient();
+
+                string requestBodyString = null;
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/Register"),
+                    Method = new(HttpMethods.Post),
+                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
+                };
+
+                request.Headers.Remove("Authorization");
+                request.Headers.Add("Authorization", "Bearer " + tokenForRegister);
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    context.Response.StatusCode = 200;
+                }
+                else
+                {
+                    throw new UnauthorizedAccessException("refresh token ended");
+                }
+            }
             else if (context.Request.Cookies.TryGetValue("access_token", out var token) && !string.IsNullOrWhiteSpace(token))
             {
                 var handler = new JwtSecurityTokenHandler();
@@ -177,10 +205,8 @@ namespace AuthenticationProject.API.Middlewares
                         var accessToken = responceJson["access_token"].ToString();
                         var refreshToken = responceJson["refresh_token"].ToString();
 
-                        context.Response.Cookies.Delete("access_token");
-                        context.Response.Cookies.Delete("refresh_token");
-                        context.Response.Cookies.Append("access_token", accessToken);
-                        context.Response.Cookies.Append("refresh_token", refreshToken);
+                        DeleteCookies(context.Response);
+                        AppendCookies(context.Response, token, refreshToken);
 
                         token = accessToken;
 
@@ -204,7 +230,7 @@ namespace AuthenticationProject.API.Middlewares
 
         #region Private Methods
 
-        private async Task SetUnauthorizedResponse(HttpContext context, string? message = null)
+        private static async Task SetUnauthorizedResponse(HttpContext context, string? message = null)
         {
             context.Response.StatusCode = 401;
 
@@ -215,15 +241,15 @@ namespace AuthenticationProject.API.Middlewares
             }
         }
 
-        private void DeleteCookies(HttpResponse httpResponse)
+        private static void DeleteCookies(HttpResponse httpResponse)
         {
             httpResponse.Cookies.Delete("access_token");
             httpResponse.Cookies.Delete("refresh_token");
         }
 
-        private void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
+        private static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
         {
-            var options = new CookieOptions() { HttpOnly = true };
+            var options = new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict};
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
         }
