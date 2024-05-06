@@ -17,27 +17,27 @@ namespace AuthenticationProject.API
 
             builder.Services.AddOpenIddict()
                 .AddValidation(options =>
-            {
-                // Note: the validation handler uses OpenID Connect discovery
-                // to retrieve the issuer signing keys used to validate tokens.
-                options.SetIssuer("https://localhost:7100/");
-                options.AddAudiences("resource_server_1");
+                {
+                    // Note: the validation handler uses OpenID Connect discovery
+                    // to retrieve the issuer signing keys used to validate tokens.
+                    options.SetIssuer(builder.Configuration.GetSection($"{AuthenticationOptions.Section}:AuthenticationUrl").Value);
+                    options.AddAudiences("resource_server_1");
 
-                options.UseIntrospection()
-                        .SetClientId("resource_server_1")
-                        .SetClientSecret("846B62D0-DEF9-4215-A99D-86E6B8DAB342");
+                    options.UseIntrospection()
+                            .SetClientId("resource_server_1")
+                            .SetClientSecret("846B62D0-DEF9-4215-A99D-86E6B8DAB342");
 
-                // Note: in a real world application, this encryption key should be
-                // stored in a safe place (e.g in Azure KeyVault, stored as a secret).
-                options.AddEncryptionKey(new SymmetricSecurityKey(
-                    Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
+                    // Note: in a real world application, this encryption key should be
+                    // stored in a safe place (e.g in Azure KeyVault, stored as a secret).
+                    options.AddEncryptionKey(new SymmetricSecurityKey(
+                        Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
 
-                // Register the System.Net.Http integration.
-                options.UseSystemNetHttp();
+                    // Register the System.Net.Http integration.
+                    options.UseSystemNetHttp();
 
-                // Register the ASP.NET Core host.
-                options.UseAspNetCore();
-            });
+                    // Register the ASP.NET Core host.
+                    options.UseAspNetCore();
+                });
 
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));

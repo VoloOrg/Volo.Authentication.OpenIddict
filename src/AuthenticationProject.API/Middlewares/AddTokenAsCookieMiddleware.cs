@@ -3,6 +3,9 @@ using AuthenticationProject.API.Options;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using AuthenticationProject.API.Models;
+using Newtonsoft.Json;
+using Polly;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -25,7 +28,7 @@ namespace AuthenticationProject.API.Middlewares
 
                 var formData = await context.Request.ReadFormAsync();
 
-                HttpRequestMessage request = new() 
+                HttpRequestMessage request = new()
                 { 
                     RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/token"), 
                     Method = new(HttpMethods.Post),
@@ -33,15 +36,6 @@ namespace AuthenticationProject.API.Middlewares
                 };
 
                 var response = await client.SendAsync(request);
-
-                try
-                {
-                    response.EnsureSuccessStatusCode();
-                }
-                catch (HttpRequestException ex)
-                {
-                    throw new HttpRequestException(await response.Content.ReadAsStringAsync(), ex, response.StatusCode);
-                }
 
                 
                 if (response.IsSuccessStatusCode)
@@ -56,7 +50,11 @@ namespace AuthenticationProject.API.Middlewares
                     DeleteCookies(context.Response);
                     AppendCookies(context.Response, token, refreshToken);
 
-                    context.Response.StatusCode = 200;
+                    await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
+                }
+                else
+                {
+                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
                 }
                 
             }
@@ -80,11 +78,12 @@ namespace AuthenticationProject.API.Middlewares
                 if (response.IsSuccessStatusCode)
                 {
                     DeleteCookies(context.Response);
-                    context.Response.StatusCode = 200;
+                    await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
                 }
                 else
                 {
-                    await SetUnauthorizedResponse(context);
+                    DeleteCookies(context.Response);
+                    await GenerateResponse(context.Response, string.Empty, 200, await response.Content.ReadAsStringAsync());
                 }
 
                 await _next(context);
@@ -116,11 +115,11 @@ namespace AuthenticationProject.API.Middlewares
 
                 if (response.IsSuccessStatusCode)
                 {
-                    context.Response.StatusCode = 200;
+                    await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
                 }
                 else
                 {
-                    throw new UnauthorizedAccessException("refresh token ended");
+                    await GenerateResponse(context.Response, string.Empty, 403, await response.Content.ReadAsStringAsync());
                 }
             }
             else if (context.Request.Path == "/auth/account/register"
@@ -150,11 +149,11 @@ namespace AuthenticationProject.API.Middlewares
 
                 if (response.IsSuccessStatusCode)
                 {
-                    context.Response.StatusCode = 200;
+                    await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
                 }
                 else
                 {
-                    throw new UnauthorizedAccessException("refresh token ended");
+                    await GenerateResponse(context.Response, string.Empty, 403, await response.Content.ReadAsStringAsync());
                 }
             }
             else if (context.Request.Cookies.TryGetValue("access_token", out var token) && !string.IsNullOrWhiteSpace(token))
@@ -232,13 +231,7 @@ namespace AuthenticationProject.API.Middlewares
 
         private static async Task SetUnauthorizedResponse(HttpContext context, string? message = null)
         {
-            context.Response.StatusCode = 401;
-
-            if (!string.IsNullOrWhiteSpace(message))
-            {
-                var bytes = Encoding.UTF8.GetBytes(message);
-                await context.Response.BodyWriter.WriteAsync(bytes);
-            }
+            await GenerateResponse(context.Response, string.Empty, 401, message);
         }
 
         private static void DeleteCookies(HttpResponse httpResponse)
@@ -249,9 +242,25 @@ namespace AuthenticationProject.API.Middlewares
 
         private static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
         {
-            var options = new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict};
+            //todo: samesite
+            var options = new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.None};
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
+        }
+
+        private static async Task GenerateResponse<T>(HttpResponse httpResponse, T? data, int status, string? message)
+        {
+            var result = new ResponseModel<T>();
+            result.Code = status;
+            result.Data = data;
+            result.Message = message;
+
+            httpResponse.StatusCode = status;
+            httpResponse.ContentType = "application/json";
+
+            var json = JsonConvert.SerializeObject(result);
+            var bytes = Encoding.UTF8.GetBytes(json);
+            await httpResponse.BodyWriter.WriteAsync(bytes);
         }
 
         #endregion
