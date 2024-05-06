@@ -5,8 +5,8 @@ name: Build and deploy ASP.Net Core app to Azure Web App - authentication-openid
 
 on:
   push:
-    branches:
-      - main
+    paths:
+      - src/AuthenticationProject/**
   workflow_dispatch:
 
 jobs:
