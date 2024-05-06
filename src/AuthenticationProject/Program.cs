@@ -107,6 +107,7 @@ namespace AuthenticationProject
                     // Register the signing and encryption credentials.
                     //options.AddDevelopmentEncryptionCertificate();
                     //options.AddDevelopmentSigningCertificate();
+                    options.AddEphemeralSigningKey();
 
 
                     // Disables access token body encryption
