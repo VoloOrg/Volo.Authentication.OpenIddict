@@ -1,12 +1,9 @@
 using AuthenticationProject.Database;
 using AuthenticationProject.HostedServices;
-using Azure.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
-using System.Globalization;
-using System.Text;
 
 namespace AuthenticationProject
 {

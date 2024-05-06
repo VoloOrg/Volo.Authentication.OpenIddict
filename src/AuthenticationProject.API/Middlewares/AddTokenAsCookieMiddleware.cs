@@ -163,7 +163,8 @@ namespace AuthenticationProject.API.Middlewares
 
                 if(jwtSecurityToken is null || !jwtSecurityToken.Claims.Any(c => c.Type == "exp")) 
                 {
-                    await SetUnauthorizedResponse(context);
+                    await GenerateResponse(context.Response, string.Empty, 401, "Expieration missing");
+                    return;
                 }
 
                 var tokenExpieres = DateTimeOffset.FromUnixTimeSeconds( long.Parse(jwtSecurityToken.Claims.First(t => t.Type == "exp").Value)).UtcDateTime;
@@ -208,12 +209,10 @@ namespace AuthenticationProject.API.Middlewares
                         AppendCookies(context.Response, token, refreshToken);
 
                         token = accessToken;
-
-                        context.Response.StatusCode = 200;
                     }
                     else
                     {
-                        throw new UnauthorizedAccessException("refresh token ended");
+                        await GenerateResponse(context.Response, string.Empty, 401, await response.Content.ReadAsStringAsync());
                     }
                 }
 
@@ -223,16 +222,11 @@ namespace AuthenticationProject.API.Middlewares
             }
             else
             {
-                await SetUnauthorizedResponse(context);
+                await GenerateResponse(context.Response, string.Empty, 401, string.Empty);
             }
         }
 
         #region Private Methods
-
-        private static async Task SetUnauthorizedResponse(HttpContext context, string? message = null)
-        {
-            await GenerateResponse(context.Response, string.Empty, 401, message);
-        }
 
         private static void DeleteCookies(HttpResponse httpResponse)
         {
