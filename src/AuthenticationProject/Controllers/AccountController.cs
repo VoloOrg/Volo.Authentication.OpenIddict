@@ -1,16 +1,11 @@
-﻿using AspNet.Security.OpenIdConnect.Extensions;
-using AuthenticationProject.Database;
-using AuthenticationProject.Extentions;
+﻿using AuthenticationProject.Database;
 using AuthenticationProject.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
-using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AuthenticationProject.Controllers
@@ -33,23 +28,37 @@ namespace AuthenticationProject.Controllers
         // POST: /Account/Register
         [HttpPost]
         [Route("Account/Register")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
             EnsureDatabaseCreated(_applicationDbContext);
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.Email);
+                var user = await _userManager.FindByNameAsync(model.UserName);
                 if (user != null)
                 {
                     return StatusCode(StatusCodes.Status409Conflict);
                 }
 
-                user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                //Add role checking logic
+                List<string> roles = ["Admin", "BCA", "EMU"];
+
+                if (!roles.Contains(model.Role))
+                {
+                    return StatusCode(StatusCodes.Status409Conflict);
+                }
+
+                user = new IdentityUser { UserName = model.UserName, Email = model.UserName };
+
                 var result = await _userManager.CreateAsync(user, model.Password);
+                
                 if (result.Succeeded)
                 {
-                    return Ok();
+                    var res = await _userManager.AddToRoleAsync(user, model.Role);
+                    if(res.Succeeded)
+                    {
+                        return Ok();
+                    }
                 }
                 AddErrors(result);
             }
