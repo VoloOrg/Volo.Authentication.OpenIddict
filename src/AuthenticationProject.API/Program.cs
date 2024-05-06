@@ -49,7 +49,7 @@ namespace AuthenticationProject.API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            app.UseCors();
+            app.UseCors(o => o.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
             app.UseSwagger();
             app.UseSwaggerUI();
 
