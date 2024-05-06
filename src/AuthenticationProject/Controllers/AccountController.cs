@@ -1,8 +1,17 @@
-﻿using AuthenticationProject.Database;
+﻿using AspNet.Security.OpenIdConnect.Extensions;
+using AuthenticationProject.Database;
+using AuthenticationProject.Extentions;
 using AuthenticationProject.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
+using OpenIddict.Validation.AspNetCore;
+using System.Security.Claims;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AuthenticationProject.Controllers
 {
@@ -48,6 +57,68 @@ namespace AuthenticationProject.Controllers
             // If we got this far, something failed.
             return BadRequest(ModelState);
         }
+
+
+        [HttpPost]
+        [Route("Account/changepassword")]
+        [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel data, CancellationToken cancellationToken)
+        {
+            var email = OpenIddict.Abstractions.OpenIddictExtensions.GetClaim(HttpContext.User,"email");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                var properties = new AuthenticationProperties(new Dictionary<string, string>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        "The user is invalid."
+                });
+
+                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            // Validate the username/password parameters and ensure the account is not locked out.
+            var oldPasswordCheckResult = await _userManager.CheckPasswordAsync(user, data.CurrentPassword);
+
+            if (!oldPasswordCheckResult)
+            {
+                var properties = new AuthenticationProperties(new Dictionary<string, string>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        "The old password is invalid."
+                });
+
+                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            var newPasswordCheckResult = await _userManager.CheckPasswordAsync(user, data.NewPassword);
+
+            if (newPasswordCheckResult)
+            {
+                var properties = new AuthenticationProperties(new Dictionary<string, string>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        "Old and new passwords cannot be the same."
+                });
+
+                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, data.CurrentPassword, data.NewPassword);
+
+            if (result.Succeeded)
+            {
+                return Ok();
+            }
+
+            // If we got this far, something failed.
+            return BadRequest();
+        }
+
 
         #region Helpers
 

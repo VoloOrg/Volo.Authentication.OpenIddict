@@ -5,6 +5,10 @@ using AuthenticationProject.API.Options;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using System.Text;
+using System.Text.Json;
+using AuthenticationProject.API.Models;
+using Polly;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -55,14 +59,75 @@ namespace AuthenticationProject.API.Middlewares
                     var token = responceJson["access_token"].ToString();
                     var refreshToken = responceJson["refresh_token"].ToString();
 
-                    context.Response.Cookies.Delete("access_token");
-                    context.Response.Cookies.Delete("refresh_token");
-                    context.Response.Cookies.Append("access_token", token);
-                    context.Response.Cookies.Append("refresh_token", refreshToken);
+                    DeleteCookies(context.Response);
+                    AppendCookies(context.Response, token, refreshToken);
 
                     context.Response.StatusCode = 200;
                 }
                 
+            }
+            else if(context.Request.Path == "/auth/connect/logout" 
+                && context.Request.Cookies.TryGetValue("access_token", out var tokenForLogout) 
+                && !string.IsNullOrWhiteSpace(tokenForLogout))
+            {
+                HttpClient client = new HttpClient();
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/logout"),
+                    Method = new(HttpMethods.Get)
+                };
+
+                request.Headers.Remove("Authorization");
+                request.Headers.Add("Authorization", "Bearer " + tokenForLogout);
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    DeleteCookies(context.Response);
+                    context.Response.StatusCode = 200;
+                }
+                else
+                {
+                    await SetUnauthorizedResponse(context);
+                }
+
+                await _next(context);
+            }
+            else if (context.Request.Path == "/auth/account/changepassword"
+                && context.Request.Cookies.TryGetValue("access_token", out var tokenForPassChange)
+                && !string.IsNullOrWhiteSpace(tokenForPassChange))
+            {
+                HttpClient client = new HttpClient();
+
+                string requestBodyString = null;
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/changepassword"),
+                    Method = new(HttpMethods.Post),
+                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
+                };
+
+                request.Headers.Remove("Authorization");
+                request.Headers.Add("Authorization", "Bearer " + tokenForPassChange);
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    context.Response.StatusCode = 200;
+                }
+                else
+                {
+                    throw new UnauthorizedAccessException("refresh token ended");
+                }
             }
             else if (context.Request.Cookies.TryGetValue("access_token", out var token) && !string.IsNullOrWhiteSpace(token))
             {
@@ -71,12 +136,12 @@ namespace AuthenticationProject.API.Middlewares
 
                 if(jwtSecurityToken is null || !jwtSecurityToken.Claims.Any(c => c.Type == "exp")) 
                 {
-                    throw new UnauthorizedAccessException();
+                    await SetUnauthorizedResponse(context);
                 }
 
                 var tokenExpieres = DateTimeOffset.FromUnixTimeSeconds( long.Parse(jwtSecurityToken.Claims.First(t => t.Type == "exp").Value)).UtcDateTime;
 
-                if(tokenExpieres.AddMinutes(-2) <= DateTime.UtcNow 
+                if(tokenExpieres.AddMinutes(-1) <= DateTime.UtcNow 
                     && context.Request.Cookies.TryGetValue("refresh_token", out var cookieRefreshToken) 
                     && !string.IsNullOrWhiteSpace(cookieRefreshToken))
                 {
@@ -127,15 +192,42 @@ namespace AuthenticationProject.API.Middlewares
                     }
                 }
 
-
                 context.Request.Headers.Remove("Authorization");
                 context.Request.Headers.Add("Authorization", "Bearer " + token);
                 await _next(context);
             }
             else
             {
-                throw new UnauthorizedAccessException("Narek unauthorized");
+                await SetUnauthorizedResponse(context);
             }
         }
+
+        #region Private Methods
+
+        private async Task SetUnauthorizedResponse(HttpContext context, string? message = null)
+        {
+            context.Response.StatusCode = 401;
+
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                var bytes = Encoding.UTF8.GetBytes(message);
+                await context.Response.BodyWriter.WriteAsync(bytes);
+            }
+        }
+
+        private void DeleteCookies(HttpResponse httpResponse)
+        {
+            httpResponse.Cookies.Delete("access_token");
+            httpResponse.Cookies.Delete("refresh_token");
+        }
+
+        private void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
+        {
+            var options = new CookieOptions() { HttpOnly = true };
+            httpResponse.Cookies.Append("access_token", accessToken, options);
+            httpResponse.Cookies.Append("refresh_token", refreshToken, options);
+        }
+
+        #endregion
     }
 }
