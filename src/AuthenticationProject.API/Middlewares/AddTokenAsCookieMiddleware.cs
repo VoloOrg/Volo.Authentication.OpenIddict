@@ -13,10 +13,12 @@ namespace AuthenticationProject.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly AuthenticationOptions _authenticationOptions;
+        private readonly IConfiguration _configuration;
 
-        public AddTokenAsCookieMiddleware(RequestDelegate next, IOptions<AuthenticationOptions> authenticationOptions)
+        public AddTokenAsCookieMiddleware(RequestDelegate next, IOptions<AuthenticationOptions> authenticationOptions, IConfiguration configuration)
         {
             _authenticationOptions = authenticationOptions.Value;
+            _configuration = configuration;
             _next = next;
         }
 
@@ -237,10 +239,10 @@ namespace AuthenticationProject.API.Middlewares
             httpResponse.Cookies.Delete("refresh_token");
         }
 
-        private static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
+        private void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
         {
             //todo: samesite
-            var options = new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.UtcNow.AddMinutes(3600) };
+            var options = new CookieOptions() { HttpOnly = true, Domain = _configuration.GetSection("CookieDomain").Value, IsEssential = true, SameSite = SameSiteMode.None, Expires = DateTime.UtcNow.AddMinutes(3600) };
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
         }
