@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using AuthenticationProject.API.Models;
 using Newtonsoft.Json;
-using Polly;
+using AuthenticationProject.API.EmailService;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -22,7 +22,7 @@ namespace AuthenticationProject.API.Middlewares
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, IEmailService emailService)
         {
             if (context.Request.Path == "/auth/connect/token")
             {
@@ -159,6 +159,68 @@ namespace AuthenticationProject.API.Middlewares
                 else
                 {
                     await GenerateResponse(context.Response, string.Empty, 403, await response.Content.ReadAsStringAsync());
+                }
+            }
+            else if(context.Request.Path == "/auth/account/ForgotPassword"
+                && !context.Request.Cookies.ContainsKey("access_token"))
+            {
+                HttpClient client = new HttpClient();
+
+                string requestBodyString = null;
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/ForgotPassword"),
+                    Method = new(HttpMethods.Post),
+                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
+                };
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseObject = JsonConvert.DeserializeObject<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync());
+                    
+                    await GenerateResponse(context.Response, responseObject, 200, string.Empty);
+                }
+                else
+                {
+                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            else if (context.Request.Path == "/auth/account/ResetPassword"
+                && !context.Request.Cookies.ContainsKey("access_token"))
+            {
+                HttpClient client = new HttpClient();
+
+                string requestBodyString = null;
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/ResetPassword"),
+                    Method = new(HttpMethods.Post),
+                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
+                };
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await GenerateResponse(context.Response, string.Empty, 200, "Password reseted successfully");
+                }
+                else
+                {
+                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
                 }
             }
             else if (context.Request.Cookies.TryGetValue("access_token", out var token) && !string.IsNullOrWhiteSpace(token))

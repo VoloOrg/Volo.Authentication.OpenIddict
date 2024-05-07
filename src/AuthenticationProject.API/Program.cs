@@ -1,3 +1,4 @@
+using AuthenticationProject.API.EmailService;
 using AuthenticationProject.API.Middlewares;
 using AuthenticationProject.API.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -39,6 +40,8 @@ namespace AuthenticationProject.API
                     options.UseAspNetCore();
                 });
 
+            builder.Services.AddScoped<IEmailService, EmailService.EmailService>();
+
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));
             builder.Services.AddCors(options =>
@@ -55,6 +58,7 @@ namespace AuthenticationProject.API
             builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
             builder.Services.AddAuthorization();
             builder.Services.AddSwaggerGen();
+
 
             var app = builder.Build();
 

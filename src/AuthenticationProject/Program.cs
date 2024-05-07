@@ -41,6 +41,9 @@ namespace AuthenticationProject
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(opt =>
+                    opt.TokenLifespan = TimeSpan.FromHours(2));
+
             // OpenIddict offers native integration with Quartz.NET to perform scheduled tasks
             // (like pruning orphaned authorizations/tokens from the database) at regular intervals.
             builder.Services.AddQuartz(options =>
