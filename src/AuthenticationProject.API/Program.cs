@@ -41,7 +41,17 @@ namespace AuthenticationProject.API
 
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));
-            builder.Services.AddCors();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("MyPolicy",
+                                      policy =>
+                                      {
+                                          policy.WithOrigins(builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? throw new InvalidOperationException("AllowedCorsOrigins configuration is null"))
+                                                              .AllowAnyHeader()
+                                                              .AllowAnyMethod()
+                                                              .AllowCredentials();
+                                      });
+            });
             builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
             builder.Services.AddAuthorization();
             builder.Services.AddSwaggerGen();
@@ -49,7 +59,7 @@ namespace AuthenticationProject.API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            app.UseCors(o => o.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+            app.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowCredentials());
             app.UseSwagger();
             app.UseSwaggerUI();
 
