@@ -233,8 +233,8 @@ namespace AuthenticationProject.API.Middlewares
 
         private static void DeleteCookies(HttpResponse httpResponse)
         {
-            httpResponse.Cookies.Delete("access_token");
-            httpResponse.Cookies.Delete("refresh_token");
+            httpResponse.Cookies.Append("access_token", "");
+            httpResponse.Cookies.Append("refresh_token", "");
         }
 
         private static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
