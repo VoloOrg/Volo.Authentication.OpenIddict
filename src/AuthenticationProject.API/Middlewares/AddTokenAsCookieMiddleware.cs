@@ -58,9 +58,7 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 
             }
-            else if(context.Request.Path == "/auth/connect/logout" 
-                && context.Request.Cookies.TryGetValue("access_token", out var tokenForLogout) 
-                && !string.IsNullOrWhiteSpace(tokenForLogout))
+            else if(context.Request.Path == "/auth/connect/logout" )
             {
                 HttpClient client = new HttpClient();
 
@@ -70,8 +68,13 @@ namespace AuthenticationProject.API.Middlewares
                     Method = new(HttpMethods.Get)
                 };
 
-                request.Headers.Remove("Authorization");
-                request.Headers.Add("Authorization", "Bearer " + tokenForLogout);
+
+                if (context.Request.Cookies.TryGetValue("access_token", out var tokenForLogout)
+                && !string.IsNullOrWhiteSpace(tokenForLogout))
+                {
+                    request.Headers.Remove("Authorization");
+                    request.Headers.Add("Authorization", "Bearer " + tokenForLogout);
+                }                
 
                 var response = await client.SendAsync(request);
 
