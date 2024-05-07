@@ -49,7 +49,7 @@ namespace AuthenticationProject.API.Middlewares
                     var token = responceJson["access_token"].ToString();
                     var refreshToken = responceJson["refresh_token"].ToString();
 
-                    DeleteCookies(context.Response);
+                    //DeleteCookies(context.Response);
                     AppendCookies(context.Response, token, refreshToken);
 
                     await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
@@ -210,7 +210,7 @@ namespace AuthenticationProject.API.Middlewares
                         var accessToken = responceJson["access_token"].ToString();
                         var refreshToken = responceJson["refresh_token"].ToString();
 
-                        DeleteCookies(context.Response);
+                        //DeleteCookies(context.Response);
                         AppendCookies(context.Response, token, refreshToken);
 
                         token = accessToken;
