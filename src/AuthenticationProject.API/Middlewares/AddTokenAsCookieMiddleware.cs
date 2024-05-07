@@ -240,7 +240,7 @@ namespace AuthenticationProject.API.Middlewares
         private static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
         {
             //todo: samesite
-            var options = new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.None};
+            var options = new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.UtcNow.AddMinutes(3600) };
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
         }
