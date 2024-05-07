@@ -135,8 +135,6 @@ namespace AuthenticationProject.Controllers
                         .SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user))
                         .SetClaims(Claims.Role, [.. (await _userManager.GetRolesAsync(user))]);
 
-                var scopes = request.GetScopes();
-
                 // Set the list of scopes granted to the client application.
                 identity.SetScopes(new[]
                 {

@@ -1,4 +1,3 @@
-using AuthenticationProject.API.EmailService;
 using AuthenticationProject.API.Middlewares;
 using AuthenticationProject.API.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -22,11 +21,11 @@ namespace AuthenticationProject.API
                     // Note: the validation handler uses OpenID Connect discovery
                     // to retrieve the issuer signing keys used to validate tokens.
                     options.SetIssuer(builder.Configuration.GetSection($"{AuthenticationOptions.Section}:AuthenticationUrl").Value);
-                    options.AddAudiences("resource_server_1");
+                    options.AddAudiences(builder.Configuration.GetSection($"{AppInfo.Section}:{nameof(AppInfo.ClientId)}").Value);
 
                     options.UseIntrospection()
-                            .SetClientId("resource_server_1")
-                            .SetClientSecret("846B62D0-DEF9-4215-A99D-86E6B8DAB342");
+                            .SetClientId(builder.Configuration.GetSection($"{AppInfo.Section}:{nameof(AppInfo.ClientId)}").Value)
+                            .SetClientSecret(builder.Configuration.GetSection($"{AppInfo.Section}:{nameof(AppInfo.ClientSecret)}").Value);
 
                     // Note: in a real world application, this encryption key should be
                     // stored in a safe place (e.g in Azure KeyVault, stored as a secret).
@@ -40,10 +39,11 @@ namespace AuthenticationProject.API
                     options.UseAspNetCore();
                 });
 
-            builder.Services.AddScoped<IEmailService, EmailService.EmailService>();
-
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));
+            builder.Services.Configure<AppInfo>(
+                    builder.Configuration.GetSection(AppInfo.Section));
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("MyPolicy",
@@ -55,6 +55,7 @@ namespace AuthenticationProject.API
                                                               .AllowCredentials();
                                       });
             });
+
             builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
             builder.Services.AddAuthorization();
             builder.Services.AddSwaggerGen();

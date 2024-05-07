@@ -180,16 +180,6 @@ namespace AuthenticationProject
             app.UseCors(o => o.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
             app.UseHttpsRedirection();
 
-            //app.Use(async (context, next) =>
-            //{
-            //    var ctx = context;
-
-            //    // Call the next delegate/middleware in the pipeline.
-            //    await next(context);
-
-            //    var ss = context;
-            //});
-
             app.UseAuthentication();
             app.UseAuthorization();
 

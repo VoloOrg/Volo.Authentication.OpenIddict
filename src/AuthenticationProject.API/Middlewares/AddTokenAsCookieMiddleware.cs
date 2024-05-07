@@ -5,7 +5,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using AuthenticationProject.API.Models;
 using Newtonsoft.Json;
-using AuthenticationProject.API.EmailService;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -13,16 +12,16 @@ namespace AuthenticationProject.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly AuthenticationOptions _authenticationOptions;
-        private readonly IConfiguration _configuration;
+        private readonly AppInfo _appInfoOptions;
 
-        public AddTokenAsCookieMiddleware(RequestDelegate next, IOptions<AuthenticationOptions> authenticationOptions, IConfiguration configuration)
+        public AddTokenAsCookieMiddleware(RequestDelegate next, IOptions<AuthenticationOptions> authenticationOptions, IOptions<AppInfo> appInfoOptions)
         {
             _authenticationOptions = authenticationOptions.Value;
-            _configuration = configuration;
+            _appInfoOptions = appInfoOptions.Value;
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, IEmailService emailService)
+        public async Task InvokeAsync(HttpContext context)
         {
             if (context.Request.Path == "/auth/connect/token")
             {
@@ -30,11 +29,19 @@ namespace AuthenticationProject.API.Middlewares
 
                 var formData = await context.Request.ReadFormAsync();
 
+                Dictionary<string, string> parameters = formData.Select(s => new KeyValuePair<string, string>(s.Key, s.Value.ToString())).ToDictionary(l => l.Key, l => l.Value);
+
+                parameters.Add("grant_type", "password");
+                parameters.Add("scope", _appInfoOptions.Scope);
+                parameters.Add("client_id", _appInfoOptions.ClientId);
+                parameters.Add("client_secret", _appInfoOptions.ClientSecret);
+
+
                 HttpRequestMessage request = new()
                 { 
                     RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/token"), 
                     Method = new(HttpMethods.Post),
-                    Content = new FormUrlEncodedContent(formData.Select(s => new KeyValuePair<string, string>(s.Key, s.Value.ToString()))),
+                    Content = new FormUrlEncodedContent(parameters),
                 };
 
                 var response = await client.SendAsync(request);
@@ -242,20 +249,20 @@ namespace AuthenticationProject.API.Middlewares
                 {
                     HttpClient client = new HttpClient();
 
-                    var formData = new List<KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>>
+                    var formData = new Dictionary<string, string>()
                     {
-                        new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>("grant_type", "refresh_token"),
-                        new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>("scope", "offline_access"),
-                        new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>("refresh_token", cookieRefreshToken),
-                        new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>("client_id", "resource_server_1"),
-                        new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>("client_secret", "846B62D0-DEF9-4215-A99D-86E6B8DAB342"),
-                    };
+                        { "grant_type", "refresh_token" },
+                        { "refresh_token", cookieRefreshToken },
+                        { "scope", _appInfoOptions.Scope },
+                        { "client_id", _appInfoOptions.ClientId },
+                        { "client_secret", _appInfoOptions.ClientSecret }
+                    }; 
 
                     HttpRequestMessage request = new()
                     {
                         RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/token"),
                         Method = new(HttpMethods.Post),
-                        Content = new FormUrlEncodedContent(formData.Select(s => new KeyValuePair<string, string>(s.Key, s.Value.ToString()))),
+                        Content = new FormUrlEncodedContent(formData),
                     };
 
                     request.Headers.Remove("Authorization");
