@@ -18,9 +18,6 @@ namespace AuthenticationProject
 
             builder.Services.AddLogging(o => o.AddDebug());
 
-            Console.WriteLine("CONNECTION_STRING" + builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnection"));
-            Console.WriteLine("CONNECTION_STRING1" + builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnection2"));
-            Console.WriteLine("CONNECTION_STRING2" + builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnection3"));
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
