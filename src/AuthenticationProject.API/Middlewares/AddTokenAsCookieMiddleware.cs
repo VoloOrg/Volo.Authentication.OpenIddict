@@ -47,7 +47,7 @@ namespace AuthenticationProject.API.Middlewares
                     var token = responceJson["access_token"].ToString();
                     var refreshToken = responceJson["refresh_token"].ToString();
 
-                    DeleteCookies(context.Response);
+                    //DeleteCookies(context.Response);
                     AppendCookies(context.Response, token, refreshToken);
 
                     await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
@@ -208,7 +208,7 @@ namespace AuthenticationProject.API.Middlewares
                         var accessToken = responceJson["access_token"].ToString();
                         var refreshToken = responceJson["refresh_token"].ToString();
 
-                        DeleteCookies(context.Response);
+                        //DeleteCookies(context.Response);
                         AppendCookies(context.Response, token, refreshToken);
 
                         token = accessToken;
@@ -233,8 +233,8 @@ namespace AuthenticationProject.API.Middlewares
 
         private static void DeleteCookies(HttpResponse httpResponse)
         {
-            httpResponse.Cookies.Append("access_token", "");
-            httpResponse.Cookies.Append("refresh_token", "");
+            httpResponse.Cookies.Delete("access_token");
+            httpResponse.Cookies.Delete("refresh_token");
         }
 
         private static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken) 
