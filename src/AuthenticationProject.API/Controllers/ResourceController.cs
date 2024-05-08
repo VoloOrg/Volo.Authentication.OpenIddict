@@ -42,20 +42,6 @@ namespace AuthenticationProject.API.Controllers
             return Content(JsonConvert.SerializeObject(content), "application/json");
         }
 
-        [HttpGet("IsLogedIn")]
-        [Authorize]
-        public async Task<IActionResult> IsUserLogedIn()
-        {
-            
-            var content = new ResponseModel<bool>()
-            {
-                Code = 200,
-                Message = null,
-                Data = true
-            };
-
-            return Content(JsonConvert.SerializeObject(content), "application/json");
-        }
 
         [HttpGet("currentUser")]
         [Authorize]
@@ -85,6 +71,7 @@ namespace AuthenticationProject.API.Controllers
 
             return Content(JsonConvert.SerializeObject(content), "application/json");
         }
+
 
         [HttpGet("Public")]
         public async Task<IActionResult> Public()

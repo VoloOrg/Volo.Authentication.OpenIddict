@@ -37,14 +37,24 @@ namespace AuthenticationProject.API.Middlewares
             {
                 HttpClient client = new HttpClient();
 
-                var formData = await context.Request.ReadFormAsync();
+                string requestBodyString = null;
 
-                Dictionary<string, string> parameters = formData.Select(s => new KeyValuePair<string, string>(s.Key, s.Value.ToString())).ToDictionary(l => l.Key, l => l.Value);
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
 
-                parameters.Add("grant_type", "password");
-                parameters.Add("scope", _appInfoOptions.Scope);
-                parameters.Add("client_id", _appInfoOptions.ClientId);
-                parameters.Add("client_secret", _appInfoOptions.ClientSecret);
+                var body = JsonConvert.DeserializeObject<LoginModel>(requestBodyString);
+
+                Dictionary<string, string> parameters = new()
+                {
+                    { "username", body.Username },
+                    { "password", body.Password },
+                    { "grant_type", "password" },
+                    { "scope", _appInfoOptions.Scope },
+                    { "client_id", _appInfoOptions.ClientId },
+                    { "client_secret", _appInfoOptions.ClientSecret }
+                };
 
 
                 HttpRequestMessage request = new()
@@ -258,6 +268,16 @@ namespace AuthenticationProject.API.Middlewares
                 {
                     await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
                 }
+            }
+            else if(context.Request.Path == "/auth/account/IsLogedIn")
+            {
+                if(context.Request.Cookies.TryGetValue("access_token", out var tokenForIslogedin))
+                {
+                    context.Request.Headers.Remove("Authorization");
+                    context.Request.Headers.Add("Authorization", "Bearer " + tokenForIslogedin);
+                }
+                
+                await _next(context);
             }
             else if (context.Request.Cookies.TryGetValue("access_token", out var token) && !string.IsNullOrWhiteSpace(token))
             {

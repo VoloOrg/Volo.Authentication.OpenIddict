@@ -151,11 +151,6 @@ namespace AuthenticationProject.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
         {
-            if(model.Password != model.ConfirmPassword)
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Confirm Password was not valid");
-            }
-
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
