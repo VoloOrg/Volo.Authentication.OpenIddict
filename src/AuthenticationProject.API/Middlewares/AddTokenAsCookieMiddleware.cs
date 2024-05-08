@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using AuthenticationProject.API.Models;
 using Newtonsoft.Json;
+using AuthenticationProject.API.Mailing;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -12,12 +13,21 @@ namespace AuthenticationProject.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly AuthenticationOptions _authenticationOptions;
-        private readonly AppInfo _appInfoOptions;
+        private readonly AppInfoOptions _appInfoOptions;
+        private readonly MailingOptions _mailOptions;
+        private readonly IMailingService _mailingService;
 
-        public AddTokenAsCookieMiddleware(RequestDelegate next, IOptions<AuthenticationOptions> authenticationOptions, IOptions<AppInfo> appInfoOptions)
+        public AddTokenAsCookieMiddleware(
+            RequestDelegate next, 
+            IOptions<AuthenticationOptions> authenticationOptions, 
+            IOptions<AppInfoOptions> appInfoOptions, 
+            IOptions<MailingOptions> mailOptions, 
+            IMailingService mailingService)
         {
             _authenticationOptions = authenticationOptions.Value;
             _appInfoOptions = appInfoOptions.Value;
+            _mailOptions = mailOptions.Value;
+            _mailingService = mailingService;
             _next = next;
         }
 
@@ -191,9 +201,28 @@ namespace AuthenticationProject.API.Middlewares
 
                 if (response.IsSuccessStatusCode)
                 {
+                    //Email or other method to send the token
                     var responseObject = JsonConvert.DeserializeObject<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync());
-                    
-                    await GenerateResponse(context.Response, responseObject, 200, string.Empty);
+
+                    string mailContent = _mailOptions.EnvironmentUri + _mailOptions.Endpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}";
+
+                    var sendEmailModel = new SendEmailModel()
+                    {
+                        FromEmail = _mailOptions.FromEmail,
+                        FromName = _mailOptions.FromName,
+                        PlainTextMessage = mailContent,
+                        HtmlTextMessage = string.Empty,
+                        Subject = "reset password test",
+                        ToEmail = responseObject.Email,
+                        ToName = responseObject.Email
+                    };
+
+                    var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
+
+                    //for mailing service
+                    await GenerateResponse(context.Response, mailResponse.IsSuccess, (int)mailResponse.StatusCode, mailResponse.Message);
+                    //for development sends token and email as responce
+                    //await GenerateResponse(context.Response, responseObject, 200, string.Empty);
                 }
                 else
                 {

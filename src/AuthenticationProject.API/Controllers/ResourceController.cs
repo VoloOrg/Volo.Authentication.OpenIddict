@@ -42,6 +42,50 @@ namespace AuthenticationProject.API.Controllers
             return Content(JsonConvert.SerializeObject(content), "application/json");
         }
 
+        [HttpGet("IsLogedIn")]
+        [Authorize]
+        public async Task<IActionResult> IsUserLogedIn()
+        {
+            
+            var content = new ResponseModel<bool>()
+            {
+                Code = 200,
+                Message = null,
+                Data = true
+            };
+
+            return Content(JsonConvert.SerializeObject(content), "application/json");
+        }
+
+        [HttpGet("currentUser")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var email = User.GetClaim(Claims.Email);
+            var name = User.GetClaim(Claims.Name);
+            var role = User.GetClaim(Claims.Role);
+
+            if (name is null || email is null || role is null)
+            {
+                return Challenge(
+                    authenticationSchemes: OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string>
+                    {
+                        [OpenIddictValidationAspNetCoreConstants.Properties.Error] = Errors.InvalidToken,
+                        [OpenIddictValidationAspNetCoreConstants.Properties.ErrorDescription] =
+                            "The specified access token is bound to an account that no longer exists."
+                    }));
+            }
+            var content = new ResponseModel<CurrentUserModel>()
+            {
+                Code = 200,
+                Message = null,
+                Data = new CurrentUserModel() { Email =  email, Username = name, Roles = new List<string>() {role } },
+            };
+
+            return Content(JsonConvert.SerializeObject(content), "application/json");
+        }
+
         [HttpGet("Public")]
         public async Task<IActionResult> Public()
         {

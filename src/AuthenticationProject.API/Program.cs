@@ -1,7 +1,10 @@
+using AuthenticationProject.API.Mailing;
 using AuthenticationProject.API.Middlewares;
 using AuthenticationProject.API.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
+using SendGrid;
+using SendGrid.Extensions.DependencyInjection;
 
 namespace AuthenticationProject.API
 {
@@ -21,11 +24,11 @@ namespace AuthenticationProject.API
                     // Note: the validation handler uses OpenID Connect discovery
                     // to retrieve the issuer signing keys used to validate tokens.
                     options.SetIssuer(builder.Configuration.GetSection($"{AuthenticationOptions.Section}:AuthenticationUrl").Value);
-                    options.AddAudiences(builder.Configuration.GetSection($"{AppInfo.Section}:{nameof(AppInfo.ClientId)}").Value);
+                    options.AddAudiences(builder.Configuration.GetSection($"{AppInfoOptions.Section}:{nameof(AppInfoOptions.ClientId)}").Value);
 
                     options.UseIntrospection()
-                            .SetClientId(builder.Configuration.GetSection($"{AppInfo.Section}:{nameof(AppInfo.ClientId)}").Value)
-                            .SetClientSecret(builder.Configuration.GetSection($"{AppInfo.Section}:{nameof(AppInfo.ClientSecret)}").Value);
+                            .SetClientId(builder.Configuration.GetSection($"{AppInfoOptions.Section}:{nameof(AppInfoOptions.ClientId)}").Value)
+                            .SetClientSecret(builder.Configuration.GetSection($"{AppInfoOptions.Section}:{nameof(AppInfoOptions.ClientSecret)}").Value);
 
                     // Note: in a real world application, this encryption key should be
                     // stored in a safe place (e.g in Azure KeyVault, stored as a secret).
@@ -41,8 +44,8 @@ namespace AuthenticationProject.API
 
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));
-            builder.Services.Configure<AppInfo>(
-                    builder.Configuration.GetSection(AppInfo.Section));
+            builder.Services.Configure<AppInfoOptions>(
+                    builder.Configuration.GetSection(AppInfoOptions.Section));
 
             builder.Services.AddCors(options =>
             {
@@ -60,6 +63,10 @@ namespace AuthenticationProject.API
             builder.Services.AddAuthorization();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddSendGrid(cfg => builder.Configuration.GetSection(nameof(SendGridClientOptions)).Bind(cfg));
+            builder.Services.AddSingleton<IMailingService, MailingService>();
+            builder.Services.Configure<MailingOptions>(
+                    builder.Configuration.GetSection(MailingOptions.Section));
 
             var app = builder.Build();
 
