@@ -87,7 +87,7 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 
             }
-            else if(context.Request.Path == "/auth/connect/logout" )
+            else if(context.Request.Path == "/auth/account/logout")
             {
                 HttpClient client = new HttpClient();
 
@@ -188,7 +188,7 @@ namespace AuthenticationProject.API.Middlewares
                     await GenerateResponse(context.Response, string.Empty, 403, await response.Content.ReadAsStringAsync());
                 }
             }
-            else if(context.Request.Path == "/auth/account/ForgotPassword"
+            else if(context.Request.Path == "/auth/connect/ForgotPassword"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
                 HttpClient client = new HttpClient();
@@ -202,7 +202,7 @@ namespace AuthenticationProject.API.Middlewares
 
                 HttpRequestMessage request = new()
                 {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/ForgotPassword"),
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/ForgotPassword"),
                     Method = new(HttpMethods.Post),
                     Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
                 };
@@ -239,7 +239,7 @@ namespace AuthenticationProject.API.Middlewares
                     await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
                 }
             }
-            else if (context.Request.Path == "/auth/account/ResetPassword"
+            else if (context.Request.Path == "/auth/connect/ResetPassword"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
                 HttpClient client = new HttpClient();
@@ -253,7 +253,7 @@ namespace AuthenticationProject.API.Middlewares
 
                 HttpRequestMessage request = new()
                 {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/ResetPassword"),
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/ResetPassword"),
                     Method = new(HttpMethods.Post),
                     Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
                 };
@@ -269,7 +269,7 @@ namespace AuthenticationProject.API.Middlewares
                     await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
                 }
             }
-            else if(context.Request.Path == "/auth/account/IsLogedIn")
+            else if(context.Request.Path == "/auth/connect/IsLoggedIn")
             {
                 if(context.Request.Cookies.TryGetValue("access_token", out var tokenForIslogedin))
                 {

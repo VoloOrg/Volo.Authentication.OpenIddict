@@ -41,7 +41,7 @@ namespace AuthenticationProject.Controllers
                 }
 
                 //Add role checking logic
-                List<string> roles = ["Admin", "BCA", "EMU"];
+                List<string> roles = ["Admin", "User1", "User2"];
 
                 if (!roles.Contains(model.Role))
                 {
@@ -126,46 +126,6 @@ namespace AuthenticationProject.Controllers
 
             // If we got this far, something failed.
             return BadRequest();
-        }
-
-
-        [HttpPost]
-        [Route("Account/ForgotPassword")]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordEmailModel model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity,"Email was not valid");
-            }
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-            return new JsonResult(new ForgotPasswordResponseModel (){ Token = token, Email = model.Email });
-        }
-
-
-        [HttpPost]
-        [Route("Account/ResetPassword")]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-
-            if (user == null)
-            {
-                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
-            }
-
-            var resetPassResult = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
-
-            if (!resetPassResult.Succeeded)
-            {
-                return BadRequest();
-            }
-
-            return Ok();
         }
 
 

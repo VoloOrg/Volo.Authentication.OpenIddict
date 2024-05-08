@@ -148,7 +148,7 @@ namespace AuthenticationProject
                 await dbContext.Database.MigrateAsync();
 
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var roles = new[] { "Admin", "EMU", "BCA" };
+                var roles = new[] { "Admin", "User1", "User2" };
 
                 foreach (var role in roles)
                 {

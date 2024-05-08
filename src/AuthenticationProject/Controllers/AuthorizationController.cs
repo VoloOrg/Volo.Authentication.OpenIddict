@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using OpenIddict.Validation.AspNetCore;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AuthenticationProject.Extentions;
+using AuthenticationProject.Models;
 
 namespace AuthenticationProject.Controllers
 {
@@ -28,7 +29,7 @@ namespace AuthenticationProject.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost("~/connect/token"), IgnoreAntiforgeryToken, Produces("application/json")]
+        [HttpPost("connect/token"), IgnoreAntiforgeryToken, Produces("application/json")]
         public async Task<IActionResult> Exchange()
         {
             var request = HttpContext.GetOpenIddictServerRequest();
@@ -157,7 +158,7 @@ namespace AuthenticationProject.Controllers
 
 
         [HttpGet]
-        [Route("~/connect/logout")]
+        [Route("connect/logout")]
         [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
         public async Task<IActionResult> Logout()
         {
@@ -186,6 +187,45 @@ namespace AuthenticationProject.Controllers
             }
 
             return output ? Ok() : BadRequest();
+        }
+
+        [HttpPost]
+        [Route("connect/ForgotPassword")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordEmailModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            return new JsonResult(new ForgotPasswordResponseModel() { Token = token, Email = model.Email });
+        }
+
+
+        [HttpPost]
+        [Route("connect/ResetPassword")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
+            }
+
+            var resetPassResult = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+            if (!resetPassResult.Succeeded)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
         }
     }
 }
