@@ -12,6 +12,7 @@ using OpenIddict.Validation.AspNetCore;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AuthenticationProject.Extentions;
 using AuthenticationProject.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AuthenticationProject.Controllers
 {
@@ -205,6 +206,27 @@ namespace AuthenticationProject.Controllers
             return new JsonResult(new ForgotPasswordResponseModel() { Token = token, Email = model.Email });
         }
 
+        [HttpPost]
+        [Route("connect/VerifyToken")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> VerifyForgotPasswordToken([FromBody] VerifyForgotPasswordTokenModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
+            }
+
+            var isVerified = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", model.Token);
+
+            if(isVerified)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
+
 
         [HttpPost]
         [Route("connect/ResetPassword")]
@@ -218,7 +240,12 @@ namespace AuthenticationProject.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
             }
 
-            var resetPassResult = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return ValidationProblem();
+            }
+
+            var resetPassResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
 
             if (!resetPassResult.Succeeded)
             {

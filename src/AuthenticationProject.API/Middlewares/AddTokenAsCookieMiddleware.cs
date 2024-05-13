@@ -48,7 +48,7 @@ namespace AuthenticationProject.API.Middlewares
 
                 Dictionary<string, string> parameters = new()
                 {
-                    { "username", body.Username },
+                    { "username", body.Email },
                     { "password", body.Password },
                     { "grant_type", "password" },
                     { "scope", _appInfoOptions.Scope },
@@ -147,11 +147,15 @@ namespace AuthenticationProject.API.Middlewares
 
                 if (response.IsSuccessStatusCode)
                 {
-                    await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
+                    await GenerateResponse(context.Response, true, 200, string.Empty);
+                }
+                else if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await GenerateResponse(context.Response, false, 200, "Password/confirm password are wrong");
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, string.Empty, 403, await response.Content.ReadAsStringAsync());
+                    await GenerateResponse(context.Response, false, 403, await response.Content.ReadAsStringAsync());
                 }
             }
             else if (context.Request.Path == "/auth/account/register"
@@ -230,13 +234,43 @@ namespace AuthenticationProject.API.Middlewares
                     var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
 
                     //for mailing service
-                    await GenerateResponse(context.Response, mailResponse.IsSuccess, (int)mailResponse.StatusCode, mailResponse.Message);
+                    await GenerateResponse(context.Response, mailResponse.IsSuccess, 200, mailResponse.Message);
                     //for development sends token and email as responce
                     //await GenerateResponse(context.Response, responseObject, 200, string.Empty);
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                    await GenerateResponse(context.Response, true, 200, "mail is sent");
+                }
+            }
+            else if (context.Request.Path == "/auth/connect/VerifyToken"
+                && !context.Request.Cookies.ContainsKey("access_token"))
+            {
+                HttpClient client = new HttpClient();
+
+                string requestBodyString = null;
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/VerifyToken"),
+                    Method = new(HttpMethods.Post),
+                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
+                };
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await GenerateResponse(context.Response, true, 200, "All good, proceed");
+                }
+                else
+                {
+                    await GenerateResponse(context.Response, false, 200, "Not valid token");
                 }
             }
             else if (context.Request.Path == "/auth/connect/ResetPassword"
@@ -262,11 +296,15 @@ namespace AuthenticationProject.API.Middlewares
 
                 if (response.IsSuccessStatusCode)
                 {
-                    await GenerateResponse(context.Response, string.Empty, 200, "Password reseted successfully");
+                    await GenerateResponse(context.Response, true, 200, "Password reseted successfully");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await GenerateResponse(context.Response, false, 200, "Password/confirm password/token are wrong");
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                    await GenerateResponse(context.Response, false, 200, "Password reset failed");
                 }
             }
             else if(context.Request.Path == "/auth/connect/IsLoggedIn")

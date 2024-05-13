@@ -49,7 +49,7 @@ namespace AuthenticationProject.API.Controllers
             {
                 Code = 200,
                 Message = null,
-                Data = new CurrentUserModel() { Email = email, Username = name, Roles = new List<string>() { role } },
+                Data = new CurrentUserModel() { Email = email, Role = Role.AllRoles.First(r => r.Name == role).Id },
             };
 
             return Content(JsonConvert.SerializeObject(content), "application/json");

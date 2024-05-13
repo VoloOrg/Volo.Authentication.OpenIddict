@@ -1,9 +1,7 @@
 ﻿namespace AuthenticationProject.API.Models
 {
-    public class ResetPasswordModel
+    public class VerifyForgotPasswordTokenModel
     {
-        public string NewPassword { get; set; } = default!;
-        public string ConfirmPassword { get; set; } = default!;
         public string Email { get; set; } = default!;
         public string Token { get; set; } = default!;
     }

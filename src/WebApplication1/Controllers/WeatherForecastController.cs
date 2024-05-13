@@ -21,7 +21,7 @@ namespace WebApplication1.Controllers
 
         [HttpGet]
         [Route("GetWeather")]
-        [Authorize(Roles = "BCA")]
+        [Authorize(Roles = "Special")]
         public IEnumerable<WeatherForecast> Get()
         {
             var ctx = HttpContext;

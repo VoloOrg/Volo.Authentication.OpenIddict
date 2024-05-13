@@ -35,7 +35,7 @@ namespace WebApplication1
                 await dbContext.Database.MigrateAsync();
 
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var roles = new[] { "Admin", "EMU", "BCA" };
+                var roles = new[] { "Admin", "General", "Special" };
 
                 foreach (var role in roles)
                 {

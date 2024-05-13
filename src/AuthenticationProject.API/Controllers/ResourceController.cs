@@ -13,9 +13,9 @@ namespace AuthenticationProject.API.Controllers
     [Route("api")]
     public class ResourceController : ControllerBase
     {
-        [HttpGet("info")]
+        [HttpPost("InviteUser")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> InviteUser()
         {
             var context = HttpContext;
             var email = User.GetClaim(Claims.Email);

@@ -1,5 +1,6 @@
 using AuthenticationProject.Database;
 using AuthenticationProject.HostedServices;
+using AuthenticationProject.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -148,13 +149,13 @@ namespace AuthenticationProject
                 await dbContext.Database.MigrateAsync();
 
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-                var roles = new[] { "Admin", "User1", "User2" };
+                
 
-                foreach (var role in roles)
+                foreach (var role in Role.AllRoles)
                 {
-                    if (!await roleManager.RoleExistsAsync(role.ToUpper()))
+                    if (!await roleManager.RoleExistsAsync(role.Name.ToUpper()))
                     {
-                        await roleManager.CreateAsync(new IdentityRole(role));
+                        await roleManager.CreateAsync(new IdentityRole(role.Name));
                     }
                 }
 

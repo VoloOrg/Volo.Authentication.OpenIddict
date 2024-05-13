@@ -24,8 +24,7 @@ namespace AuthenticationProject.Controllers
             _applicationDbContext = applicationDbContext;
         }
 
-        //
-        // POST: /Account/Register
+        
         [HttpPost]
         [Route("Account/Register")]
         [Authorize(Roles = "Admin", AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
@@ -34,27 +33,27 @@ namespace AuthenticationProject.Controllers
             EnsureDatabaseCreated(_applicationDbContext);
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(model.UserName);
+                var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user != null)
                 {
                     return StatusCode(StatusCodes.Status409Conflict);
                 }
 
                 //Add role checking logic
-                List<string> roles = ["Admin", "User1", "User2"];
+                
 
-                if (!roles.Contains(model.Role))
+                if (!Role.AllRoles.Select(s => s.Id).Contains(model.Role))
                 {
                     return StatusCode(StatusCodes.Status409Conflict);
                 }
 
-                user = new IdentityUser { UserName = model.UserName, Email = model.UserName };
+                user = new IdentityUser { UserName = model.Email, Email = model.Email };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 
                 if (result.Succeeded)
                 {
-                    var res = await _userManager.AddToRoleAsync(user, model.Role);
+                    var res = await _userManager.AddToRoleAsync(user, Role.AllRoles.First(r => r.Id == model.Role).Name);
                     if(res.Succeeded)
                     {
                         return Ok();
@@ -101,6 +100,11 @@ namespace AuthenticationProject.Controllers
                 });
 
                 return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            if(data.NewPassword != data.ConfirmPassword)
+            {
+                return ValidationProblem();
             }
 
             var newPasswordCheckResult = await _userManager.CheckPasswordAsync(user, data.NewPassword);
