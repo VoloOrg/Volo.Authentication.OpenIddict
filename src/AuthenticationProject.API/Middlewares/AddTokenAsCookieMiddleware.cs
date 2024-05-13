@@ -413,7 +413,14 @@ namespace AuthenticationProject.API.Middlewares
             httpResponse.StatusCode = status;
             httpResponse.ContentType = "application/json";
 
-            var json = JsonConvert.SerializeObject(result);
+            var json = JsonConvert.SerializeObject(result, new JsonSerializerSettings
+            {
+                 ContractResolver = new DefaultContractResolver
+                 {
+                     NamingStrategy = new CamelCaseNamingStrategy()
+                 },
+                 Formatting = Formatting.Indented,
+            });
             var bytes = Encoding.UTF8.GetBytes(json);
             await httpResponse.BodyWriter.WriteAsync(bytes);
         }
