@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 using SendGrid;
 using SendGrid.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace AuthenticationProject.API
 {
@@ -16,7 +17,8 @@ namespace AuthenticationProject.API
 
             // Add services to the container.
             
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
             builder.Services.AddOpenIddict()
                 .AddValidation(options =>

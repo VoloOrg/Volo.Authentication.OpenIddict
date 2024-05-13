@@ -12,7 +12,6 @@ using OpenIddict.Validation.AspNetCore;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AuthenticationProject.Extentions;
 using AuthenticationProject.Models;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AuthenticationProject.Controllers
 {
@@ -203,13 +202,13 @@ namespace AuthenticationProject.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            return new JsonResult(new ForgotPasswordResponseModel() { Token = token, Email = model.Email });
+            return new JsonResult(new ForgotPasswordResponseModel() { Token = token, Email = model.Email , Type = "ResetPassword" });
         }
 
         [HttpPost]
         [Route("connect/VerifyToken")]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> VerifyForgotPasswordToken([FromBody] VerifyForgotPasswordTokenModel model)
+        public async Task<IActionResult> VerifyToken([FromBody] VerifyTokenModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
@@ -217,9 +216,9 @@ namespace AuthenticationProject.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
             }
 
-            var isVerified = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", model.Token);
+            var isVerified = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, model.Type, model.Token);
 
-            if(isVerified)
+            if (isVerified)
             {
                 return Ok();
             }
@@ -246,6 +245,40 @@ namespace AuthenticationProject.Controllers
             }
 
             var resetPassResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+
+            if (!resetPassResult.Succeeded)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("connect/SetPassword")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> SetPassword([FromBody] ResetPasswordModel model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Email was not valid");
+            }
+
+            var isVerified = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "InviteUser", model.Token);
+
+            if (!isVerified)
+            {
+                return StatusCode(StatusCodes.Status422UnprocessableEntity, "Token was not valid");
+            }
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return ValidationProblem();
+            }
+
+            var resetPassResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
 
             if (!resetPassResult.Succeeded)
             {

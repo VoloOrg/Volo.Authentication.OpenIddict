@@ -1,10 +1,15 @@
-﻿using AuthenticationProject.API.Models;
+﻿using AuthenticationProject.API.Mailing;
+using AuthenticationProject.API.Models;
+using AuthenticationProject.API.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
+using Polly;
+using System.Text;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AuthenticationProject.API.Controllers
@@ -13,6 +18,20 @@ namespace AuthenticationProject.API.Controllers
     [Route("auth")]
     public class AuthenticationController : ControllerBase
     {
+        private readonly Options.AuthenticationOptions _authenticationOptions;
+        private readonly MailingOptions _mailOptions;
+        private readonly IMailingService _mailingService;
+
+        public AuthenticationController(
+            IOptions<Options.AuthenticationOptions> authenticationOptions, 
+            IOptions<MailingOptions> mailOptions,
+            IMailingService mailingService)
+        {
+            _authenticationOptions = authenticationOptions.Value;
+            _mailOptions = mailOptions.Value;
+            _mailingService = mailingService;
+        }
+
         [HttpGet("connect/IsLoggedIn")]
         public async Task<IActionResult> IsUserLoggedIn()
         {
@@ -23,7 +42,7 @@ namespace AuthenticationProject.API.Controllers
                 Data = User.Identity?.IsAuthenticated ?? false,
             };
 
-            return Content(JsonConvert.SerializeObject(content), "application/json");
+            return Ok(content);
         }
 
         [HttpGet("account/CurrentUser")]
@@ -52,7 +71,68 @@ namespace AuthenticationProject.API.Controllers
                 Data = new CurrentUserModel() { Email = email, Role = Role.AllRoles.First(r => r.Name == role).Id },
             };
 
-            return Content(JsonConvert.SerializeObject(content), "application/json");
+            return Ok(content);
+        }
+
+        [HttpPost("InviteUser")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> InviteUser([FromBody] InviteUserModel model)
+        {
+            HttpClient client = new HttpClient();
+            
+            var token = Request.Headers["Authorization"].ToString();
+            
+            HttpRequestMessage request = new()
+            {
+                RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/InviteUser"),
+                Method = new(HttpMethods.Post),
+                Content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json")
+            };
+
+            request.Headers.Add("Authorization", token);
+
+            var response = await client.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                //Email or other method to send the token
+                var responseObject = JsonConvert.DeserializeObject<InviteUserResponseModel>(await response.Content.ReadAsStringAsync());
+
+                string mailContent = _mailOptions.EnvironmentUri + _mailOptions.Endpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}&role={responseObject.Role}";
+
+                var sendEmailModel = new SendEmailModel()
+                {
+                    FromEmail = _mailOptions.FromEmail,
+                    FromName = _mailOptions.FromName,
+                    PlainTextMessage = mailContent,
+                    HtmlTextMessage = string.Empty,
+                    Subject = "invite user test",
+                    ToEmail = responseObject.Email,
+                    ToName = responseObject.Email
+                };
+
+                var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
+
+                var content = new ResponseModel<bool>()
+                {
+                    Code = (int)mailResponse.StatusCode,
+                    Message = mailResponse.IsSuccess ? "mail is sent" : "failed to send email",
+                    Data = mailResponse.IsSuccess,
+                };
+
+                return mailResponse.IsSuccess ? Ok(content) : BadRequest(content);
+            }
+            else
+            {
+                var content = new ResponseModel<bool>()
+                {
+                    Code = 400,
+                    Message = "failed to send email",
+                    Data = false,
+                };
+
+                return BadRequest(content);
+            }
         }
     }
 }

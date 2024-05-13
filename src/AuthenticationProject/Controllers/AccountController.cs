@@ -66,6 +66,48 @@ namespace AuthenticationProject.Controllers
             return BadRequest(ModelState);
         }
 
+        [HttpPost]
+        [Route("Account/InviteUser")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> InviteUser([FromBody] InviteUserModel model)
+        {
+            EnsureDatabaseCreated(_applicationDbContext);
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null)
+                {
+                    return StatusCode(StatusCodes.Status409Conflict);
+                }
+
+                //Add role checking logic
+                if (!Role.AllRoles.Select(s => s.Id).Contains(model.Role))
+                {
+                    return StatusCode(StatusCodes.Status409Conflict);
+                }
+
+                user = new IdentityUser { UserName = model.Email, Email = model.Email };
+
+                var result = await _userManager.CreateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    var type = "InviteUser";
+                    var res = await _userManager.AddToRoleAsync(user, Role.AllRoles.First(r => r.Id == model.Role).Name);
+                    if (res.Succeeded)
+                    {
+                        var token = await _userManager.GenerateUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, type);
+
+                        return new JsonResult(new InviteUserResponseModel() { Token = token, Email = model.Email, Role = model.Role, Type = type });
+                    }
+                }
+
+                AddErrors(result);
+            }
+
+            // If we got this far, something failed.
+            return BadRequest(ModelState);
+        }
 
         [HttpPost]
         [Route("Account/changepassword")]

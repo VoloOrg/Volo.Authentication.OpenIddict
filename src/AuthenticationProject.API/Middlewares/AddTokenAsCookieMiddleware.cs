@@ -7,6 +7,7 @@ using AuthenticationProject.API.Models;
 using Newtonsoft.Json;
 using AuthenticationProject.API.Mailing;
 using Newtonsoft.Json.Serialization;
+using System.Reflection;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -219,7 +220,7 @@ namespace AuthenticationProject.API.Middlewares
                     //Email or other method to send the token
                     var responseObject = JsonConvert.DeserializeObject<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync());
 
-                    string mailContent = _mailOptions.EnvironmentUri + _mailOptions.Endpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}";
+                    string mailContent = _mailOptions.EnvironmentUri + _mailOptions.Endpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}";
 
                     var sendEmailModel = new SendEmailModel()
                     {
@@ -306,6 +307,40 @@ namespace AuthenticationProject.API.Middlewares
                 else
                 {
                     await GenerateResponse(context.Response, false, 200, "Password reset failed");
+                }
+            }
+            else if (context.Request.Path == "/auth/connect/SetPassword"
+                && !context.Request.Cookies.ContainsKey("access_token"))
+            {
+                HttpClient client = new HttpClient();
+
+                string requestBodyString = null;
+
+                using (var reader = new StreamReader(context.Request.Body))
+                {
+                    requestBodyString = await reader.ReadToEndAsync();
+                }
+
+                HttpRequestMessage request = new()
+                {
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/SetPassword"),
+                    Method = new(HttpMethods.Post),
+                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
+                };
+
+                var response = await client.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await GenerateResponse(context.Response, true, 200, "Password seted successfully");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                {
+                    await GenerateResponse(context.Response, false, 200, "Password/confirm password/token are wrong");
+                }
+                else
+                {
+                    await GenerateResponse(context.Response, false, 200, "Set password failed");
                 }
             }
             else if(context.Request.Path == "/auth/connect/IsLoggedIn")

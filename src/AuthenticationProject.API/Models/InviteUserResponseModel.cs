@@ -1,9 +1,10 @@
 ﻿namespace AuthenticationProject.API.Models
 {
-    public class ForgotPasswordResponseModel
+    public class InviteUserResponseModel
     {
         public string Token { get; set; }
         public string Email { get; set; }
+        public int Role { get; set; }
         public string Type { get; set; }
     }
 }
