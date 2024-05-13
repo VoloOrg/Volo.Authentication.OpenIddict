@@ -6,6 +6,7 @@ using System.Text;
 using AuthenticationProject.API.Models;
 using Newtonsoft.Json;
 using AuthenticationProject.API.Mailing;
+using Newtonsoft.Json.Serialization;
 
 namespace AuthenticationProject.API.Middlewares
 {
