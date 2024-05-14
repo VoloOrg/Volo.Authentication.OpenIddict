@@ -71,38 +71,52 @@ namespace AuthenticationProject.Controllers
         [Authorize(Roles = "Admin", AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
         public async Task<IActionResult> InviteUser([FromBody] InviteUserModel model)
         {
+            var type = "InviteUser";
+
             EnsureDatabaseCreated(_applicationDbContext);
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
+
                 if (user != null)
                 {
-                    return StatusCode(StatusCodes.Status409Conflict);
-                }
-
-                //Add role checking logic
-                if (!Role.AllRoles.Select(s => s.Id).Contains(model.Role))
-                {
-                    return StatusCode(StatusCodes.Status409Conflict);
-                }
-
-                user = new IdentityUser { UserName = model.Email, Email = model.Email };
-
-                var result = await _userManager.CreateAsync(user);
-
-                if (result.Succeeded)
-                {
-                    var type = "InviteUser";
-                    var res = await _userManager.AddToRoleAsync(user, Role.AllRoles.First(r => r.Id == model.Role).Name);
-                    if (res.Succeeded)
+                    if(await _userManager.HasPasswordAsync(user))
+                    {
+                        return StatusCode(StatusCodes.Status409Conflict);
+                    }
+                    else
                     {
                         var token = await _userManager.GenerateUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, type);
 
                         return new JsonResult(new InviteUserResponseModel() { Token = token, Email = model.Email, Role = model.Role, Type = type });
                     }
                 }
+                else
+                {
+                    //Add role checking logic
+                    if (!Role.AllRoles.Select(s => s.Id).Contains(model.Role))
+                    {
+                        return StatusCode(StatusCodes.Status409Conflict);
+                    }
 
-                AddErrors(result);
+                    user = new IdentityUser { UserName = model.Email, Email = model.Email };
+
+                    var result = await _userManager.CreateAsync(user);
+
+                    if (result.Succeeded)
+                    {
+
+                        var res = await _userManager.AddToRoleAsync(user, Role.AllRoles.First(r => r.Id == model.Role).Name);
+                        if (res.Succeeded)
+                        {
+                            var token = await _userManager.GenerateUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, type);
+
+                            return new JsonResult(new InviteUserResponseModel() { Token = token, Email = model.Email, Role = model.Role, Type = type });
+                        }
+                    }
+
+                    AddErrors(result);
+                }                
             }
 
             // If we got this far, something failed.

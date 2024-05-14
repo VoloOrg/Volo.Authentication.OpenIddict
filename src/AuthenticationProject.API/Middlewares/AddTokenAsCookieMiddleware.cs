@@ -188,6 +188,10 @@ namespace AuthenticationProject.API.Middlewares
                 {
                     await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
                 }
+                else if(response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    await GenerateResponse(context.Response, string.Empty, 400, "incorrect information");
+                }
                 else
                 {
                     await GenerateResponse(context.Response, string.Empty, 403, await response.Content.ReadAsStringAsync());
@@ -235,7 +239,7 @@ namespace AuthenticationProject.API.Middlewares
                     var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
 
                     //for mailing service
-                    await GenerateResponse(context.Response, mailResponse.IsSuccess, 200, mailResponse.Message);
+                    await GenerateResponse(context.Response, true, 200, "mail is sent");
                     //for development sends token and email as responce
                     //await GenerateResponse(context.Response, responseObject, 200, string.Empty);
                 }
