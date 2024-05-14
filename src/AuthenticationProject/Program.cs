@@ -56,7 +56,17 @@ namespace AuthenticationProject
 
             // Register the Quartz.NET service and configure it to block shutdown until jobs are complete.
             builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("MyPolicy",
+                                      policy =>
+                                      {
+                                          policy.WithOrigins(builder.Configuration.GetSection("AllowedCorsOrigins").Get<string[]>() ?? throw new InvalidOperationException("AllowedCorsOrigins configuration is null"))
+                                                              .AllowAnyHeader()
+                                                              .AllowAnyMethod()
+                                                              .AllowCredentials();
+                                      });
+            });
             builder.Services.AddOpenIddict()
                 // Register the OpenIddict core components.
                 .AddCore(options => 
@@ -178,7 +188,7 @@ namespace AuthenticationProject
 
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseCors(o => o.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+            app.UseCors("MyPolicy");
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
