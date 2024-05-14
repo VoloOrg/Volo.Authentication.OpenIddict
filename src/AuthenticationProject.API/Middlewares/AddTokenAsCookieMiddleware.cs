@@ -84,7 +84,7 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                    await GenerateResponse(context.Response, string.Empty, (int)response.StatusCode, "Failed to log in");
                 }
                 
             }
@@ -152,7 +152,7 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 else if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    await GenerateResponse(context.Response, false, 400, "Password/confirm password are wrong");
+                    await GenerateResponse(context.Response, false, 400, "Incorrect information");
                 }
                 else
                 {
@@ -460,7 +460,7 @@ namespace AuthenticationProject.API.Middlewares
                  },
                  Formatting = Formatting.Indented,
             });
-            var bytes = Encoding.UTF8.GetBytes(json);
+            var bytes = Encoding.UTF8.GetBytes(json); 
             await httpResponse.BodyWriter.WriteAsync(bytes);
         }
 

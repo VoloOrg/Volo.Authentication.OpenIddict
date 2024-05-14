@@ -148,33 +148,37 @@ namespace AuthenticationProject.Controllers
 
             if (!oldPasswordCheckResult)
             {
-                var properties = new AuthenticationProperties(new Dictionary<string, string>
+                var validationProblemDetails = new ValidationProblemDetails(new Dictionary<string, string[]>
                 {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
                     [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The old password is invalid."
+                        ["The old password is invalid."]
                 });
 
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                return ValidationProblem(validationProblemDetails);
             }
 
             if(data.NewPassword != data.ConfirmPassword)
             {
-                return ValidationProblem();
+                var validationProblemDetails = new ValidationProblemDetails(new Dictionary<string, string[]>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        ["The new password and the confirm password don't match"]
+                });
+
+                return ValidationProblem(validationProblemDetails);
             }
 
             var newPasswordCheckResult = await _userManager.CheckPasswordAsync(user, data.NewPassword);
 
             if (newPasswordCheckResult)
             {
-                var properties = new AuthenticationProperties(new Dictionary<string, string>
+                var validationProblemDetails = new ValidationProblemDetails(new Dictionary<string, string[]>
                 {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
                     [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                        "Old and new passwords cannot be the same."
+                        ["new password is not valid"]
                 });
 
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                return ValidationProblem(validationProblemDetails);
             }
 
             var result = await _userManager.ChangePasswordAsync(user, data.CurrentPassword, data.NewPassword);
