@@ -1,14 +1,5 @@
 using AuthenticationProject.API.Models;
-using AuthenticationProject.API.Options;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using OpenIddict.Abstractions;
-using OpenIddict.Validation.AspNetCore;
-using Polly;
-using System.Text;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AuthenticationProject.API.Controllers
 {

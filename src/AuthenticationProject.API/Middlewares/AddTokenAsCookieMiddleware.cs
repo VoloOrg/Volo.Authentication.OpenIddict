@@ -7,7 +7,6 @@ using AuthenticationProject.API.Models;
 using Newtonsoft.Json;
 using AuthenticationProject.API.Mailing;
 using Newtonsoft.Json.Serialization;
-using System.Reflection;
 
 namespace AuthenticationProject.API.Middlewares
 {
@@ -220,7 +219,7 @@ namespace AuthenticationProject.API.Middlewares
                     //Email or other method to send the token
                     var responseObject = JsonConvert.DeserializeObject<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync());
 
-                    string mailContent = _mailOptions.EnvironmentUri + _mailOptions.Endpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}";
+                    string mailContent = _mailOptions.EnvironmentUri + _mailOptions.ResetEndpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}";
 
                     var sendEmailModel = new SendEmailModel()
                     {
@@ -302,14 +301,14 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    await GenerateResponse(context.Response, false, 200, "Password/confirm password/token are wrong");
+                    await GenerateResponse(context.Response, false, 400, "Password/confirm password/token are wrong");
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, false, 200, "Password reset failed");
+                    await GenerateResponse(context.Response, false, 400, "Password reset failed");
                 }
             }
-            else if (context.Request.Path == "/auth/connect/SetPassword"
+            else if (context.Request.Path == "/auth/connect/Register"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
                 HttpClient client = new HttpClient();
@@ -336,11 +335,11 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    await GenerateResponse(context.Response, false, 200, "Password/confirm password/token are wrong");
+                    await GenerateResponse(context.Response, false, 400, "Password/confirm password/token are wrong");
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, false, 200, "Set password failed");
+                    await GenerateResponse(context.Response, false, 400, "Set password failed");
                 }
             }
             else if(context.Request.Path == "/auth/connect/IsLoggedIn")

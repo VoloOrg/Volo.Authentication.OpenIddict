@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
-using Polly;
 using System.Text;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -98,7 +97,7 @@ namespace AuthenticationProject.API.Controllers
                 //Email or other method to send the token
                 var responseObject = JsonConvert.DeserializeObject<InviteUserResponseModel>(await response.Content.ReadAsStringAsync());
 
-                string mailContent = _mailOptions.EnvironmentUri + _mailOptions.Endpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}&role={responseObject.Role}";
+                string mailContent = _mailOptions.EnvironmentUri + _mailOptions.RegisterEndpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}&role={responseObject.Role}";
 
                 var sendEmailModel = new SendEmailModel()
                 {
@@ -115,7 +114,7 @@ namespace AuthenticationProject.API.Controllers
 
                 var content = new ResponseModel<bool>()
                 {
-                    Code = (int)mailResponse.StatusCode,
+                    Code = mailResponse.IsSuccess ? 200 : 400,
                     Message = mailResponse.IsSuccess ? "mail is sent" : "failed to send email",
                     Data = mailResponse.IsSuccess,
                 };

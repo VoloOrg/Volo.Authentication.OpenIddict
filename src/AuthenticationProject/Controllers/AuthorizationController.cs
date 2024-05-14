@@ -255,7 +255,7 @@ namespace AuthenticationProject.Controllers
         }
 
         [HttpPost]
-        [Route("connect/SetPassword")]
+        [Route("connect/Register")]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> SetPassword([FromBody] ResetPasswordModel model)
         {
