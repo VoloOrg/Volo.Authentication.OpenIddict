@@ -152,7 +152,7 @@ namespace AuthenticationProject.API.Middlewares
                 }
                 else if(response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    await GenerateResponse(context.Response, false, 200, "Password/confirm password are wrong");
+                    await GenerateResponse(context.Response, false, 400, "Password/confirm password are wrong");
                 }
                 else
                 {
@@ -326,7 +326,7 @@ namespace AuthenticationProject.API.Middlewares
 
                 HttpRequestMessage request = new()
                 {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/SetPassword"),
+                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/Register"),
                     Method = new(HttpMethods.Post),
                     Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
                 };
