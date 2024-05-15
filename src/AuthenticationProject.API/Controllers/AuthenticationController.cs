@@ -77,6 +77,11 @@ namespace AuthenticationProject.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> InviteUser([FromBody] InviteUserModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             HttpClient client = new HttpClient();
             
             var token = Request.Headers["Authorization"].ToString();

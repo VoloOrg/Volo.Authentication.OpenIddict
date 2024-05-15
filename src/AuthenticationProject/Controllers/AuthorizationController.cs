@@ -194,6 +194,11 @@ namespace AuthenticationProject.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordEmailModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
