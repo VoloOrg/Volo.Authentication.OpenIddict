@@ -346,16 +346,6 @@ namespace AuthenticationProject.API.Middlewares
                     await GenerateResponse(context.Response, false, 400, "Set password failed");
                 }
             }
-            else if(context.Request.Path == "/auth/connect/IsLoggedIn")
-            {
-                if(context.Request.Cookies.TryGetValue("access_token", out var tokenForIslogedin))
-                {
-                    context.Request.Headers.Remove("Authorization");
-                    context.Request.Headers.Add("Authorization", "Bearer " + tokenForIslogedin);
-                }
-                
-                await _next(context);
-            }
             else if (context.Request.Cookies.TryGetValue("access_token", out var token) && !string.IsNullOrWhiteSpace(token))
             {
                 var handler = new JwtSecurityTokenHandler();

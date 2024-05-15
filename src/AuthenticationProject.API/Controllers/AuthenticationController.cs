@@ -31,19 +31,6 @@ namespace AuthenticationProject.API.Controllers
             _mailingService = mailingService;
         }
 
-        [HttpGet("connect/IsLoggedIn")]
-        public async Task<IActionResult> IsUserLoggedIn()
-        {
-            var content = new ResponseModel<bool>()
-            {
-                Code = 200,
-                Message = null,
-                Data = User.Identity?.IsAuthenticated ?? false,
-            };
-
-            return Ok(content);
-        }
-
         [HttpGet("account/CurrentUser")]
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
