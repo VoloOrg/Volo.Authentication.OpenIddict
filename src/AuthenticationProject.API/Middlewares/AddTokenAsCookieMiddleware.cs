@@ -406,7 +406,7 @@ namespace AuthenticationProject.API.Middlewares
                         var refreshToken = responceJson["refresh_token"].ToString();
 
                         DeleteCookies(context.Response);
-                        AppendCookies(context.Response, token, refreshToken);
+                        AppendCookies(context.Response, accessToken, refreshToken);
 
                         token = accessToken;
                     }
