@@ -1,6 +1,6 @@
 ﻿namespace Volo.Authentication.OpenIddict.API.Services
 {
-    public interface IAuthenticationClientService
+    public interface IAuthenticationClient
     {
         Task<HttpResponseMessage> GetToken(HttpContent content);
         Task<HttpResponseMessage> Logout(string? token);

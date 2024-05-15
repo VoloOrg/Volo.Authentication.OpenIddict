@@ -3,12 +3,12 @@ using Volo.Authentication.OpenIddict.API.Options;
 
 namespace Volo.Authentication.OpenIddict.API.Services
 {
-    public class AuthenticationClientService : IAuthenticationClientService
+    public class AuthenticationClient : IAuthenticationClient
     {
         private readonly HttpClient _httpClient;
         private readonly AuthenticationOptions _authenticationOptions;
 
-        public AuthenticationClientService(HttpClient httpClient, IOptions<AuthenticationOptions> authenticationOptions)
+        public AuthenticationClient(HttpClient httpClient, IOptions<AuthenticationOptions> authenticationOptions)
         {
             _httpClient = httpClient;
             _authenticationOptions = authenticationOptions.Value;

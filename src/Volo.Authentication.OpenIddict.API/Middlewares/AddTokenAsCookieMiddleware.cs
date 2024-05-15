@@ -17,7 +17,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
         private readonly AppInfoOptions _appInfoOptions;
         private readonly MailingOptions _mailOptions;
         private readonly IMailingService _mailingService;
-        private readonly IAuthenticationClientService _authenticationClient;
+        private readonly IAuthenticationClient _authenticationClient;
 
         public AddTokenAsCookieMiddleware(
             RequestDelegate next, 
@@ -25,7 +25,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             IOptions<AppInfoOptions> appInfoOptions, 
             IOptions<MailingOptions> mailOptions, 
             IMailingService mailingService,
-            IAuthenticationClientService authenticationClient)
+            IAuthenticationClient authenticationClient)
         {
             _authenticationOptions = authenticationOptions.Value;
             _appInfoOptions = appInfoOptions.Value;

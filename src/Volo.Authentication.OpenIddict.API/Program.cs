@@ -71,7 +71,7 @@ namespace Volo.Authentication.OpenIddict.API
             builder.Services.Configure<MailingOptions>(
                     builder.Configuration.GetSection(MailingOptions.Section));
 
-            builder.Services.AddHttpClient<IAuthenticationClientService, AuthenticationClientService>();
+            builder.Services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
 
             var app = builder.Build();
 
