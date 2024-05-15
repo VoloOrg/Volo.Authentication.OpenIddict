@@ -1,6 +1,6 @@
-﻿using AuthenticationProject.API.Mailing;
-using AuthenticationProject.API.Models;
-using AuthenticationProject.API.Options;
+﻿using AuthenticationOpenIddict.API.Mailing;
+using AuthenticationOpenIddict.API.Models;
+using AuthenticationOpenIddict.API.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,7 @@ using OpenIddict.Validation.AspNetCore;
 using System.Text;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthenticationProject.API.Controllers
+namespace AuthenticationOpenIddict.API.Controllers
 {
     [ApiController]
     [Route("auth")]

@@ -1,6 +1,6 @@
-@AuthenticationProject.API_HostAddress = http://localhost:5206
+@AuthenticationOpenIddict.API_HostAddress = http://localhost:5206
 
-GET {{AuthenticationProject.API_HostAddress}}/weatherforecast/
+GET {{AuthenticationOpenIddict.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

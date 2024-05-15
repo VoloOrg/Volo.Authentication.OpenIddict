@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AuthenticationProject.Migrations
+namespace AuthenticationOpenIddict.Migrations
 {
     /// <inheritdoc />
     public partial class initial : Migration

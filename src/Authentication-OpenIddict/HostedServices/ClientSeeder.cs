@@ -1,8 +1,8 @@
 ﻿using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using AuthenticationProject.Database;
+using AuthenticationOpenIddict.Database;
 
-namespace AuthenticationProject.HostedServices
+namespace AuthenticationOpenIddict.HostedServices
 {
     public class ClientSeeder : IHostedService
     {

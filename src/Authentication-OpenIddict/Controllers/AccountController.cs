@@ -1,5 +1,5 @@
-﻿using AuthenticationProject.Database;
-using AuthenticationProject.Models;
+﻿using AuthenticationOpenIddict.Database;
+using AuthenticationOpenIddict.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +8,7 @@ using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthenticationProject.Controllers
+namespace AuthenticationOpenIddict.Controllers
 {
     public class AccountController : Controller
     {

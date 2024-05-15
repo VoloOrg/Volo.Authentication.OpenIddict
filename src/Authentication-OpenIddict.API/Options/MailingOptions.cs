@@ -1,4 +1,4 @@
-﻿namespace AuthenticationProject.API.Options
+﻿namespace AuthenticationOpenIddict.API.Options
 {
     public class MailingOptions
     {

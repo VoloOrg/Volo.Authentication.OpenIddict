@@ -1,7 +1,7 @@
-using AuthenticationProject.API.Models;
+using AuthenticationOpenIddict.API.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthenticationProject.API.Controllers
+namespace AuthenticationOpenIddict.API.Controllers
 {
     [ApiController]
     [Route("api")]

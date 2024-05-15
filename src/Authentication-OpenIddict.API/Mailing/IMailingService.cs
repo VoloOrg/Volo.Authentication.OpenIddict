@@ -1,4 +1,4 @@
-﻿namespace AuthenticationProject.API.Mailing
+﻿namespace AuthenticationOpenIddict.API.Mailing
 {
     public interface IMailingService
     {

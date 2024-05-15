@@ -1,12 +1,12 @@
-using AuthenticationProject.Database;
-using AuthenticationProject.HostedServices;
-using AuthenticationProject.Models;
+using AuthenticationOpenIddict.Database;
+using AuthenticationOpenIddict.HostedServices;
+using AuthenticationOpenIddict.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 
-namespace AuthenticationProject
+namespace AuthenticationOpenIddict
 {
     public class Program
     {

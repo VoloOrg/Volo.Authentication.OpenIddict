@@ -1,9 +1,9 @@
-﻿using AuthenticationProject.API.Options;
+﻿using AuthenticationOpenIddict.API.Options;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
-namespace AuthenticationProject.API.Mailing
+namespace AuthenticationOpenIddict.API.Mailing
 {
     public class MailingService : IMailingService
     {

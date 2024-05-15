@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthenticationProject.Models
+namespace AuthenticationOpenIddict.Models
 {
     public class InviteUserModel
     {

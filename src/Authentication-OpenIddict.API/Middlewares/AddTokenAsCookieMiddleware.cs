@@ -1,14 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
-using AuthenticationProject.API.Options;
+using AuthenticationOpenIddict.API.Options;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using AuthenticationProject.API.Models;
+using AuthenticationOpenIddict.API.Models;
 using Newtonsoft.Json;
-using AuthenticationProject.API.Mailing;
+using AuthenticationOpenIddict.API.Mailing;
 using Newtonsoft.Json.Serialization;
 
-namespace AuthenticationProject.API.Middlewares
+namespace AuthenticationOpenIddict.API.Middlewares
 {
     public class AddTokenAsCookieMiddleware
     {

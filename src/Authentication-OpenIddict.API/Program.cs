@@ -1,13 +1,13 @@
-using AuthenticationProject.API.Mailing;
-using AuthenticationProject.API.Middlewares;
-using AuthenticationProject.API.Options;
+using AuthenticationOpenIddict.API.Mailing;
+using AuthenticationOpenIddict.API.Middlewares;
+using AuthenticationOpenIddict.API.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 using SendGrid;
 using SendGrid.Extensions.DependencyInjection;
 using System.Text.Json;
 
-namespace AuthenticationProject.API
+namespace AuthenticationOpenIddict.API
 {
     public class Program
     {

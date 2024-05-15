@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace AuthenticationProject.API.Mailing
+namespace AuthenticationOpenIddict.API.Mailing
 {
     public class EmailResponseModel
     {

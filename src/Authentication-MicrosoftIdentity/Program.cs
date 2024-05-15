@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System;
-using WebApplication1.Database;
+using AuthenticationMicrosoftIdentity.Database;
 
-namespace WebApplication1
+namespace AuthenticationMicrosoftIdentity
 {
     public class Program
     {

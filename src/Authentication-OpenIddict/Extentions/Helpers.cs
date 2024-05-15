@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthenticationProject.Extentions
+namespace AuthenticationOpenIddict.Extentions
 {
     public static class Helpers
     {

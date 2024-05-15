@@ -1,4 +1,4 @@
-﻿namespace AuthenticationProject.API.Models
+﻿namespace AuthenticationOpenIddict.API.Models
 {
     public class ResponseModel<T>
     {

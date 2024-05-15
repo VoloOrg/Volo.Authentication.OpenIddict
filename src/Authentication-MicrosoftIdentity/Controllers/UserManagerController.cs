@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
-namespace WebApplication1.Controllers
+namespace AuthenticationMicrosoftIdentity.Controllers
 {
     [ApiController]
     [Route("UserManager")]

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WebApplication1.Controllers
+namespace AuthenticationMicrosoftIdentity.Controllers
 {
     [ApiController]
     [Route("WeatherForecast")]

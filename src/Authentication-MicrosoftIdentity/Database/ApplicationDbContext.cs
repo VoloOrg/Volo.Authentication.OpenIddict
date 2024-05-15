@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace WebApplication1.Database
+namespace AuthenticationMicrosoftIdentity.Database
 {
     public class ApplicationDbContext : IdentityDbContext
     {
