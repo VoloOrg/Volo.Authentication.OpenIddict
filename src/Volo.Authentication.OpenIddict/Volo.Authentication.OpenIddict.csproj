@@ -13,7 +13,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenIddict.AspNetCore" Version="5.5.0" />
     <PackageReference Include="OpenIddict.Core" Version="5.5.0" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="5.5.0" />

@@ -1,12 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
-using Volo.Authentication.OpenIddict.API.Options;
+﻿using Volo.Authentication.OpenIddict.API.Options;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Volo.Authentication.OpenIddict.API.Models;
-using Newtonsoft.Json;
 using Volo.Authentication.OpenIddict.API.Mailing;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json.Nodes;
+using System.Text.Json;
 
 namespace Volo.Authentication.OpenIddict.API.Middlewares
 {
@@ -45,7 +44,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     requestBodyString = await reader.ReadToEndAsync();
                 }
 
-                var body = JsonConvert.DeserializeObject<LoginModel>(requestBodyString);
+                var body = JsonSerializer.Deserialize<LoginModel>(requestBodyString, new JsonSerializerOptions() {PropertyNameCaseInsensitive = true });
 
                 Dictionary<string, string> parameters = new()
                 {
@@ -72,7 +71,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 {
                     string responseBodyString = await response.Content.ReadAsStringAsync();
 
-                    var responceJson = JObject.Parse(responseBodyString);
+                    var responceJson = JsonObject.Parse(responseBodyString);
 
                     var token = responceJson["access_token"].ToString();
                     var refreshToken = responceJson["refresh_token"].ToString();
@@ -221,7 +220,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 if (response.IsSuccessStatusCode)
                 {
                     //Email or other method to send the token
-                    var responseObject = JsonConvert.DeserializeObject<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync());
+                    var responseObject = JsonSerializer.Deserialize<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true});
 
                     string mailContent = _mailOptions.EnvironmentUri + _mailOptions.ResetEndpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}";
 
@@ -390,7 +389,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     {
                         string responseBodyString = await response.Content.ReadAsStringAsync();
 
-                        var responceJson = JObject.Parse(responseBodyString);
+                        var responceJson = JsonObject.Parse(responseBodyString);
 
                         var accessToken = responceJson["access_token"].ToString();
                         var refreshToken = responceJson["refresh_token"].ToString();
@@ -442,13 +441,9 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             httpResponse.StatusCode = status;
             httpResponse.ContentType = "application/json";
 
-            var json = JsonConvert.SerializeObject(result, new JsonSerializerSettings
+            var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
             {
-                 ContractResolver = new DefaultContractResolver
-                 {
-                     NamingStrategy = new CamelCaseNamingStrategy()
-                 },
-                 Formatting = Formatting.Indented,
+                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
             var bytes = Encoding.UTF8.GetBytes(json); 
             await httpResponse.BodyWriter.WriteAsync(bytes);

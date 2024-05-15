@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using System.Text;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using System.Text.Json;
 
 namespace Volo.Authentication.OpenIddict.API.Controllers
 {
@@ -77,7 +77,7 @@ namespace Volo.Authentication.OpenIddict.API.Controllers
             {
                 RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/InviteUser"),
                 Method = new(HttpMethods.Post),
-                Content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonSerializer.Serialize(model, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json")
             };
 
             request.Headers.Add("Authorization", token);
@@ -87,7 +87,7 @@ namespace Volo.Authentication.OpenIddict.API.Controllers
             if (response.IsSuccessStatusCode)
             {
                 //Email or other method to send the token
-                var responseObject = JsonConvert.DeserializeObject<InviteUserResponseModel>(await response.Content.ReadAsStringAsync());
+                var responseObject = JsonSerializer.Deserialize<InviteUserResponseModel>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true});
 
                 string mailContent = _mailOptions.EnvironmentUri + _mailOptions.RegisterEndpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}&role={responseObject.Role}";
 
