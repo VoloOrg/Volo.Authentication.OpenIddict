@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthenticationOpenIddict.Database
+namespace Volo.Authentication.OpenIddict.Database
 {
     public class ApplicationDbContext : IdentityDbContext<IdentityUser, IdentityRole, string>
     {

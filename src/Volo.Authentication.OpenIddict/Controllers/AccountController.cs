@@ -1,14 +1,15 @@
-﻿using AuthenticationOpenIddict.Database;
-using AuthenticationOpenIddict.Models;
+﻿using Volo.Authentication.OpenIddict.Database;
+using Volo.Authentication.OpenIddict.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
+using OpenIddictAbstraction = OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthenticationOpenIddict.Controllers
+namespace Volo.Authentication.OpenIddict.Controllers
 {
     public class AccountController : Controller
     {
@@ -128,7 +129,7 @@ namespace AuthenticationOpenIddict.Controllers
         [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel data, CancellationToken cancellationToken)
         {
-            var email = OpenIddict.Abstractions.OpenIddictExtensions.GetClaim(HttpContext.User,"email");
+            var email = OpenIddictAbstraction.OpenIddictExtensions.GetClaim(HttpContext.User,"email");
 
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)

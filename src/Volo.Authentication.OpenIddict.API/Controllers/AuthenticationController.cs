@@ -1,6 +1,6 @@
-﻿using AuthenticationOpenIddict.API.Mailing;
-using AuthenticationOpenIddict.API.Models;
-using AuthenticationOpenIddict.API.Options;
+﻿using Volo.Authentication.OpenIddict.API.Mailing;
+using Volo.Authentication.OpenIddict.API.Models;
+using Volo.Authentication.OpenIddict.API.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,7 @@ using OpenIddict.Validation.AspNetCore;
 using System.Text;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace AuthenticationOpenIddict.API.Controllers
+namespace Volo.Authentication.OpenIddict.API.Controllers
 {
     [ApiController]
     [Route("auth")]

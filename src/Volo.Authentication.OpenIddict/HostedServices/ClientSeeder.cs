@@ -1,8 +1,8 @@
 ﻿using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using AuthenticationOpenIddict.Database;
+using Volo.Authentication.OpenIddict.Database;
 
-namespace AuthenticationOpenIddict.HostedServices
+namespace Volo.Authentication.OpenIddict.HostedServices
 {
     public class ClientSeeder : IHostedService
     {

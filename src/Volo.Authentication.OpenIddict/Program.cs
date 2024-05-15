@@ -1,12 +1,12 @@
-using AuthenticationOpenIddict.Database;
-using AuthenticationOpenIddict.HostedServices;
-using AuthenticationOpenIddict.Models;
+using Volo.Authentication.OpenIddict.Database;
+using Volo.Authentication.OpenIddict.HostedServices;
+using Volo.Authentication.OpenIddict.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 
-namespace AuthenticationOpenIddict
+namespace Volo.Authentication.OpenIddict
 {
     public class Program
     {

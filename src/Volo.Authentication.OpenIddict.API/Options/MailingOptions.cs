@@ -1,4 +1,4 @@
-﻿namespace AuthenticationOpenIddict.API.Options
+﻿namespace Volo.Authentication.OpenIddict.API.Options
 {
     public class MailingOptions
     {

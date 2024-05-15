@@ -1,4 +1,4 @@
-﻿namespace AuthenticationOpenIddict.API.Mailing
+﻿namespace Volo.Authentication.OpenIddict.API.Mailing
 {
     public interface IMailingService
     {

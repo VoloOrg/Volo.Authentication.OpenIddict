@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AuthenticationOpenIddict.Migrations
+namespace Volo.Authentication.OpenIddict.Migrations
 {
     /// <inheritdoc />
     public partial class initial : Migration

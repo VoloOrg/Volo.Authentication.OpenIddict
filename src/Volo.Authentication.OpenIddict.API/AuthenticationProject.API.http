@@ -1,6 +1,6 @@
-@AuthenticationOpenIddict.API_HostAddress = http://localhost:5206
+@Volo.Authentication.OpenIddict.API_HostAddress = http://localhost:5206
 
-GET {{AuthenticationOpenIddict.API_HostAddress}}/weatherforecast/
+GET {{Volo.Authentication.OpenIddict.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

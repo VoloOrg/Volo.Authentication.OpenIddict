@@ -10,10 +10,10 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 using Microsoft.AspNetCore.Authorization;
 using OpenIddict.Validation.AspNetCore;
 using AspNet.Security.OpenIdConnect.Primitives;
-using AuthenticationOpenIddict.Extentions;
-using AuthenticationOpenIddict.Models;
+using Volo.Authentication.OpenIddict.Extentions;
+using Volo.Authentication.OpenIddict.Models;
 
-namespace AuthenticationOpenIddict.Controllers
+namespace Volo.Authentication.OpenIddict.Controllers
 {
     
     public class AuthorizationController : ControllerBase

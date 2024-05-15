@@ -1,7 +1,7 @@
-using AuthenticationOpenIddict.API.Models;
+using Volo.Authentication.OpenIddict.API.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthenticationOpenIddict.API.Controllers
+namespace Volo.Authentication.OpenIddict.API.Controllers
 {
     [ApiController]
     [Route("api")]

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthenticationOpenIddict.Models
+namespace Volo.Authentication.OpenIddict.Models
 {
     public class InviteUserModel
     {

@@ -1,13 +1,13 @@
-using AuthenticationOpenIddict.API.Mailing;
-using AuthenticationOpenIddict.API.Middlewares;
-using AuthenticationOpenIddict.API.Options;
+using Volo.Authentication.OpenIddict.API.Mailing;
+using Volo.Authentication.OpenIddict.API.Middlewares;
+using Volo.Authentication.OpenIddict.API.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 using SendGrid;
 using SendGrid.Extensions.DependencyInjection;
 using System.Text.Json;
 
-namespace AuthenticationOpenIddict.API
+namespace Volo.Authentication.OpenIddict.API
 {
     public class Program
     {

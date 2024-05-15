@@ -1,4 +1,4 @@
-﻿namespace AuthenticationOpenIddict.API.Models
+﻿namespace Volo.Authentication.OpenIddict.API.Models
 {
     public class Role
     {

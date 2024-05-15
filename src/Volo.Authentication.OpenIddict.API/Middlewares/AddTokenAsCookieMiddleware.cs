@@ -1,14 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
-using AuthenticationOpenIddict.API.Options;
+using Volo.Authentication.OpenIddict.API.Options;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using AuthenticationOpenIddict.API.Models;
+using Volo.Authentication.OpenIddict.API.Models;
 using Newtonsoft.Json;
-using AuthenticationOpenIddict.API.Mailing;
+using Volo.Authentication.OpenIddict.API.Mailing;
 using Newtonsoft.Json.Serialization;
 
-namespace AuthenticationOpenIddict.API.Middlewares
+namespace Volo.Authentication.OpenIddict.API.Middlewares
 {
     public class AddTokenAsCookieMiddleware
     {
