@@ -6,6 +6,7 @@ using OpenIddict.Validation.AspNetCore;
 using SendGrid;
 using SendGrid.Extensions.DependencyInjection;
 using System.Text.Json;
+using Volo.Authentication.OpenIddict.API.Services;
 
 namespace Volo.Authentication.OpenIddict.API
 {
@@ -69,6 +70,8 @@ namespace Volo.Authentication.OpenIddict.API
             builder.Services.AddSingleton<IMailingService, MailingService>();
             builder.Services.Configure<MailingOptions>(
                     builder.Configuration.GetSection(MailingOptions.Section));
+
+            builder.Services.AddHttpClient<IAuthenticationClientService, AuthenticationClientService>();
 
             var app = builder.Build();
 

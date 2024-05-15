@@ -6,6 +6,7 @@ using Volo.Authentication.OpenIddict.API.Models;
 using Volo.Authentication.OpenIddict.API.Mailing;
 using System.Text.Json.Nodes;
 using System.Text.Json;
+using Volo.Authentication.OpenIddict.API.Services;
 
 namespace Volo.Authentication.OpenIddict.API.Middlewares
 {
@@ -16,18 +17,21 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
         private readonly AppInfoOptions _appInfoOptions;
         private readonly MailingOptions _mailOptions;
         private readonly IMailingService _mailingService;
+        private readonly IAuthenticationClientService _authenticationClient;
 
         public AddTokenAsCookieMiddleware(
             RequestDelegate next, 
             IOptions<AuthenticationOptions> authenticationOptions, 
             IOptions<AppInfoOptions> appInfoOptions, 
             IOptions<MailingOptions> mailOptions, 
-            IMailingService mailingService)
+            IMailingService mailingService,
+            IAuthenticationClientService authenticationClient)
         {
             _authenticationOptions = authenticationOptions.Value;
             _appInfoOptions = appInfoOptions.Value;
             _mailOptions = mailOptions.Value;
             _mailingService = mailingService;
+            _authenticationClient = authenticationClient;
             _next = next;
         }
 
@@ -35,8 +39,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
         {
             if (context.Request.Path == "/auth/connect/token")
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -56,15 +58,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     { "client_secret", _appInfoOptions.ClientSecret }
                 };
 
-
-                HttpRequestMessage request = new()
-                { 
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/token"), 
-                    Method = new(HttpMethods.Post),
-                    Content = new FormUrlEncodedContent(parameters),
-                };
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.GetToken(new FormUrlEncodedContent(parameters));
 
                 
                 if (response.IsSuccessStatusCode)
@@ -89,23 +83,9 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             }
             else if(context.Request.Path == "/auth/account/logout")
             {
-                HttpClient client = new HttpClient();
+                context.Request.Cookies.TryGetValue("access_token", out var tokenForLogout);
 
-                HttpRequestMessage request = new()
-                {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/logout"),
-                    Method = new(HttpMethods.Get)
-                };
-
-
-                if (context.Request.Cookies.TryGetValue("access_token", out var tokenForLogout)
-                && !string.IsNullOrWhiteSpace(tokenForLogout))
-                {
-                    request.Headers.Remove("Authorization");
-                    request.Headers.Add("Authorization", "Bearer " + tokenForLogout);
-                }                
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.Logout(tokenForLogout);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -124,8 +104,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 && context.Request.Cookies.TryGetValue("access_token", out var tokenForPassChange)
                 && !string.IsNullOrWhiteSpace(tokenForPassChange))
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -133,17 +111,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     requestBodyString = await reader.ReadToEndAsync();
                 }
 
-                HttpRequestMessage request = new()
-                {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/changepassword"),
-                    Method = new(HttpMethods.Post),
-                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
-                };
-
-                request.Headers.Remove("Authorization");
-                request.Headers.Add("Authorization", "Bearer " + tokenForPassChange);
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.ChangePassword(new StringContent(requestBodyString, Encoding.UTF8, "application/json"), tokenForPassChange);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -162,8 +130,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 && context.Request.Cookies.TryGetValue("access_token", out var tokenForRegister)
                 && !string.IsNullOrWhiteSpace(tokenForRegister))
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -181,7 +147,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 request.Headers.Remove("Authorization");
                 request.Headers.Add("Authorization", "Bearer " + tokenForRegister);
 
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.RegisterByAdmin(new StringContent(requestBodyString, Encoding.UTF8, "application/json"), tokenForRegister);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -199,8 +165,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             else if(context.Request.Path == "/auth/connect/ForgotPassword"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -208,14 +172,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     requestBodyString = await reader.ReadToEndAsync();
                 }
 
-                HttpRequestMessage request = new()
-                {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/ForgotPassword"),
-                    Method = new(HttpMethods.Post),
-                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
-                };
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.ForgetPassword(new StringContent(requestBodyString, Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -250,8 +207,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             else if (context.Request.Path == "/auth/connect/VerifyToken"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -259,14 +214,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     requestBodyString = await reader.ReadToEndAsync();
                 }
 
-                HttpRequestMessage request = new()
-                {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/VerifyToken"),
-                    Method = new(HttpMethods.Post),
-                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
-                };
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.VerifyToken(new StringContent(requestBodyString, Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -280,8 +228,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             else if (context.Request.Path == "/auth/connect/ResetPassword"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -289,14 +235,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     requestBodyString = await reader.ReadToEndAsync();
                 }
 
-                HttpRequestMessage request = new()
-                {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/ResetPassword"),
-                    Method = new(HttpMethods.Post),
-                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
-                };
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.ResetPassword(new StringContent(requestBodyString, Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -314,8 +253,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             else if (context.Request.Path == "/auth/connect/Register"
                 && !context.Request.Cookies.ContainsKey("access_token"))
             {
-                HttpClient client = new HttpClient();
-
                 string requestBodyString = null;
 
                 using (var reader = new StreamReader(context.Request.Body))
@@ -323,14 +260,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     requestBodyString = await reader.ReadToEndAsync();
                 }
 
-                HttpRequestMessage request = new()
-                {
-                    RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/Register"),
-                    Method = new(HttpMethods.Post),
-                    Content = new StringContent(requestBodyString, Encoding.UTF8, "application/json"),
-                };
-
-                var response = await client.SendAsync(request);
+                var response = await _authenticationClient.RegisterByUser(new StringContent(requestBodyString, Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -362,8 +292,6 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                     && context.Request.Cookies.TryGetValue("refresh_token", out var cookieRefreshToken) 
                     && !string.IsNullOrWhiteSpace(cookieRefreshToken))
                 {
-                    HttpClient client = new HttpClient();
-
                     var formData = new Dictionary<string, string>()
                     {
                         { "grant_type", "refresh_token" },
@@ -373,17 +301,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                         { "client_secret", _appInfoOptions.ClientSecret }
                     }; 
 
-                    HttpRequestMessage request = new()
-                    {
-                        RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/token"),
-                        Method = new(HttpMethods.Post),
-                        Content = new FormUrlEncodedContent(formData),
-                    };
-
-                    request.Headers.Remove("Authorization");
-                    request.Headers.Add("Authorization", "Bearer " + token);
-
-                    var response = await client.SendAsync(request);
+                    var response = await _authenticationClient.GetRefreshToken(new FormUrlEncodedContent(formData), token);
 
                     if (response.IsSuccessStatusCode)
                     {
