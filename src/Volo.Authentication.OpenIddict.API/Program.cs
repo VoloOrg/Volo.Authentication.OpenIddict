@@ -17,7 +17,6 @@ namespace Volo.Authentication.OpenIddict.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            
             builder.Services.AddControllers()
                 .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
