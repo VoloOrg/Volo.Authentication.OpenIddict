@@ -8,13 +8,19 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
     {
         public static void DeleteCookies(HttpResponse httpResponse)
         {
-            httpResponse.Cookies.Delete("access_token");
-            httpResponse.Cookies.Delete("refresh_token");
+            var options = new CookieOptions()
+            {
+                HttpOnly = true,
+                Secure = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.None
+            };
+            httpResponse.Cookies.Delete("access_token", options);
+            httpResponse.Cookies.Delete("refresh_token", options);
         }
 
         public static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken)
         {
-            //todo: samesite
             var options = new CookieOptions() { HttpOnly = true, Secure = true, IsEssential = true, SameSite = SameSiteMode.None, Expires = DateTime.UtcNow.AddMinutes(3600) };
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
