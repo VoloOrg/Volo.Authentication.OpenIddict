@@ -131,7 +131,6 @@ namespace Volo.Authentication.OpenIddict
                     options.UseAspNetCore();
                 });
 
-
             builder.Services.AddCors();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
