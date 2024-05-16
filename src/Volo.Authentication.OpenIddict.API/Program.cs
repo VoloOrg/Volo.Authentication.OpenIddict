@@ -80,7 +80,8 @@ namespace Volo.Authentication.OpenIddict.API
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseMiddleware<AddTokenAsCookieMiddleware>();
+            //OpenIddict authentication middleware
+            app.UseOpenIddictAuthentication();
 
             app.UseAuthentication();
             app.UseAuthorization();
