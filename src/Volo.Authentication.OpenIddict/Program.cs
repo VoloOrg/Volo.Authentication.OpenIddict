@@ -40,7 +40,6 @@ namespace Volo.Authentication.OpenIddict
                     o.Lockout.MaxFailedAccessAttempts = 2;
                     o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                     o.Lockout.AllowedForNewUsers = true;
-
                     o.User.RequireUniqueEmail = true;
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()

@@ -43,6 +43,7 @@ namespace Volo.Authentication.OpenIddict.API
 
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));
+            
             builder.Services.Configure<AppInfoOptions>(
                     builder.Configuration.GetSection(AppInfoOptions.Section));
 
