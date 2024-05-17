@@ -11,6 +11,7 @@
         Task<HttpResponseMessage> ResetPassword(HttpContent content);
         Task<HttpResponseMessage> RegisterByUser(HttpContent content);
         Task<HttpResponseMessage> GetRefreshToken(HttpContent content, string token);
+        Task<HttpResponseMessage> InviteUser(HttpContent content, string token);
 
     }
 }

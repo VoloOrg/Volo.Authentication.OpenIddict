@@ -1,9 +1,9 @@
-﻿using Volo.Authentication.OpenIddict.API.Options;
-using Microsoft.Extensions.Options;
-using SendGrid;
+﻿using Microsoft.Extensions.Options;
 using SendGrid.Helpers.Mail;
+using SendGrid;
+using Volo.Authentication.OpenIddict.Options;
 
-namespace Volo.Authentication.OpenIddict.API.Mailing
+namespace Volo.Authentication.OpenIddict.Mailing
 {
     public class MailingService : IMailingService
     {

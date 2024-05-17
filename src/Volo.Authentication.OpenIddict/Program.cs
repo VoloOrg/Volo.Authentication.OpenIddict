@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
+using SendGrid.Extensions.DependencyInjection;
+using SendGrid;
+using Volo.Authentication.OpenIddict.Options;
+using Volo.Authentication.OpenIddict.Mailing;
 
 namespace Volo.Authentication.OpenIddict
 {
@@ -134,6 +138,11 @@ namespace Volo.Authentication.OpenIddict
             builder.Services.AddCors();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSendGrid(cfg => builder.Configuration.GetSection(nameof(SendGridClientOptions)).Bind(cfg));
+            builder.Services.Configure<MailingOptions>(
+                    builder.Configuration.GetSection(MailingOptions.Section));
+            builder.Services.AddSingleton<IMailingService, MailingService>();
 
             builder.Services.AddHostedService<ClientSeeder>();
 

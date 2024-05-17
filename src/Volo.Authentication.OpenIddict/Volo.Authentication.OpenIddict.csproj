@@ -19,6 +19,7 @@
     <PackageReference Include="OpenIddict.Quartz" Version="5.5.0" />
     <PackageReference Include="OpenIddict.Server" Version="5.5.0" />
     <PackageReference Include="Quartz.AspNetCore" Version="3.8.1" />
+    <PackageReference Include="SendGrid.Extensions.DependencyInjection" Version="1.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />

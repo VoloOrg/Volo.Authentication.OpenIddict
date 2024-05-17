@@ -10,6 +10,10 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Volo.Authentication.OpenIddict.Extentions;
 using Volo.Authentication.OpenIddict.Models;
+using System.Text.Json;
+using Volo.Authentication.OpenIddict.Options;
+using Volo.Authentication.OpenIddict.Mailing;
+using Microsoft.Extensions.Options;
 
 namespace Volo.Authentication.OpenIddict.Controllers
 {
@@ -18,13 +22,19 @@ namespace Volo.Authentication.OpenIddict.Controllers
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IMailingService _mailingService;
+        private readonly MailingOptions _mailOptions;
 
         public AuthorizationController(
             SignInManager<IdentityUser> signInManager,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            IMailingService mailingService,
+            IOptions<MailingOptions> mailingOptions)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _mailingService = mailingService;
+            _mailOptions = mailingOptions.Value;
         }
 
         [HttpPost("connect/token"), IgnoreAntiforgeryToken, Produces("application/json")]
@@ -160,6 +170,8 @@ namespace Volo.Authentication.OpenIddict.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordEmailModel model)
         {
+            var type = "ResetPassword";
+
             if (!ModelState.IsValid)
             {
                 return BadRequest();
@@ -173,7 +185,22 @@ namespace Volo.Authentication.OpenIddict.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            return new JsonResult(new ForgotPasswordResponseModel() { Token = token, Email = model.Email , Type = "ResetPassword" });
+            string mailContent = _mailOptions.EnvironmentUri + _mailOptions.ResetEndpoint + "?" + $"token={token}&email={model.Email}&type={type}";
+
+            var sendEmailModel = new SendEmailModel()
+            {
+                FromEmail = _mailOptions.FromEmail,
+                FromName = _mailOptions.FromName,
+                PlainTextMessage = mailContent,
+                HtmlTextMessage = string.Empty,
+                Subject = "reset password test",
+                ToEmail = model.Email,
+                ToName = model.Email
+            };
+
+            var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
+
+            return mailResponse.IsSuccess ? Ok() : BadRequest();
         }
 
         [HttpPost]

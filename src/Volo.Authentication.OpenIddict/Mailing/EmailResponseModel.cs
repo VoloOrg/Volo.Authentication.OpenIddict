@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Volo.Authentication.OpenIddict.API.Mailing
+namespace Volo.Authentication.OpenIddict.Mailing
 {
     public class EmailResponseModel
     {

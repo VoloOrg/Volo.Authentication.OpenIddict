@@ -9,6 +9,10 @@ using OpenIddict.Validation.AspNetCore;
 using OpenIddictAbstraction = OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using AspNet.Security.OpenIdConnect.Extensions;
+using System.Text.Json;
+using Volo.Authentication.OpenIddict.Options;
+using Microsoft.Extensions.Options;
+using Volo.Authentication.OpenIddict.Mailing;
 
 namespace Volo.Authentication.OpenIddict.Controllers
 {
@@ -17,16 +21,22 @@ namespace Volo.Authentication.OpenIddict.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly IMailingService _mailingService;
+        private readonly MailingOptions _mailOptions;
         private static bool _databaseChecked;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
             ApplicationDbContext applicationDbContext,
-            SignInManager<IdentityUser> signInManager)
+            SignInManager<IdentityUser> signInManager,
+            IOptions<MailingOptions> mailOptions,
+            IMailingService mailingService)
         {
             _userManager = userManager;
             _applicationDbContext = applicationDbContext;
             _signInManager = signInManager;
+            _mailOptions = mailOptions.Value;
+            _mailingService = mailingService;
         }
 
         
@@ -116,7 +126,22 @@ namespace Volo.Authentication.OpenIddict.Controllers
                         {
                             var token = await _userManager.GenerateUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, type);
 
-                            return new JsonResult(new InviteUserResponseModel() { Token = token, Email = model.Email, Role = model.Role, Type = type });
+                            string mailContent = _mailOptions.EnvironmentUri + _mailOptions.RegisterEndpoint + "?" + $"token={token}&email={model.Email}&type={type}&role={model.Role}";
+
+                            var sendEmailModel = new SendEmailModel()
+                            {
+                                FromEmail = _mailOptions.FromEmail,
+                                FromName = _mailOptions.FromName,
+                                PlainTextMessage = mailContent,
+                                HtmlTextMessage = string.Empty,
+                                Subject = "invite user test",
+                                ToEmail = model.Email,
+                                ToName = model.Email
+                            };
+
+                            var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
+
+                            return mailResponse.IsSuccess ? Ok() : BadRequest();
                         }
                     }
 

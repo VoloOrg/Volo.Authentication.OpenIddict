@@ -1,11 +1,6 @@
-﻿using Microsoft.Extensions.Options;
-using System.Text.Json;
-using System.Text;
-using Volo.Authentication.OpenIddict.API.Mailing;
-using Volo.Authentication.OpenIddict.API.Options;
+﻿using System.Text;
 using Volo.Authentication.OpenIddict.API.Services;
 using static Volo.Authentication.OpenIddict.API.Middlewares.MiddlewareHelpers;
-using Volo.Authentication.OpenIddict.API.Models;
 
 namespace Volo.Authentication.OpenIddict.API.Middlewares
 {
@@ -13,19 +8,13 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly IAuthenticationClient _authenticationClient;
-        private readonly MailingOptions _mailOptions;
-        private readonly IMailingService _mailingService;
 
         public ForgetPasswordMiddleware(
             RequestDelegate next,
-            IAuthenticationClient authenticationClient,
-            IOptions<MailingOptions> mailOptions,
-            IMailingService mailingService)
+            IAuthenticationClient authenticationClient)
         {
             _next = next;
             _authenticationClient = authenticationClient;
-            _mailOptions = mailOptions.Value;
-            _mailingService = mailingService;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -41,28 +30,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
 
             if (response.IsSuccessStatusCode)
             {
-                //Email or other method to send the token
-                var responseObject = JsonSerializer.Deserialize<ForgotPasswordResponseModel>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-
-                string mailContent = _mailOptions.EnvironmentUri + _mailOptions.ResetEndpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}";
-
-                var sendEmailModel = new SendEmailModel()
-                {
-                    FromEmail = _mailOptions.FromEmail,
-                    FromName = _mailOptions.FromName,
-                    PlainTextMessage = mailContent,
-                    HtmlTextMessage = string.Empty,
-                    Subject = "reset password test",
-                    ToEmail = responseObject.Email,
-                    ToName = responseObject.Email
-                };
-
-                var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
-
-                //for mailing service
                 await GenerateResponse(context.Response, true, 200, "mail is sent");
-                //for development sends token and email as responce
-                //await GenerateResponse(context.Response, responseObject, 200, string.Empty);
             }
             else
             {

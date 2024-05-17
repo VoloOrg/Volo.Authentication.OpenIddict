@@ -1,10 +1,7 @@
-using Volo.Authentication.OpenIddict.API.Mailing;
 using Volo.Authentication.OpenIddict.API.Middlewares;
 using Volo.Authentication.OpenIddict.API.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
-using SendGrid;
-using SendGrid.Extensions.DependencyInjection;
 using System.Text.Json;
 using Volo.Authentication.OpenIddict.API.Services;
 
@@ -64,11 +61,6 @@ namespace Volo.Authentication.OpenIddict.API
             builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
             builder.Services.AddAuthorization();
             builder.Services.AddSwaggerGen();
-
-            builder.Services.AddSendGrid(cfg => builder.Configuration.GetSection(nameof(SendGridClientOptions)).Bind(cfg));
-            builder.Services.AddSingleton<IMailingService, MailingService>();
-            builder.Services.Configure<MailingOptions>(
-                    builder.Configuration.GetSection(MailingOptions.Section));
 
             builder.Services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
 

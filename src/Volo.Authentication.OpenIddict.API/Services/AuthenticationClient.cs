@@ -131,5 +131,20 @@ namespace Volo.Authentication.OpenIddict.API.Services
 
             return await _httpClient.SendAsync(request);
         }
+
+        public async Task<HttpResponseMessage> InviteUser(HttpContent content, string token)
+        {
+            HttpRequestMessage request = new()
+            {
+                RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/InviteUser"),
+                Method = new(HttpMethods.Post),
+                Content = content
+            };
+
+            request.Headers.Add("Authorization", token);
+
+            return await _httpClient.SendAsync(request);
+        }
+
     }
 }

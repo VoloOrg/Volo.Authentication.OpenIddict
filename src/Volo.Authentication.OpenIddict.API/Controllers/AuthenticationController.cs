@@ -1,15 +1,13 @@
-﻿using Volo.Authentication.OpenIddict.API.Mailing;
-using Volo.Authentication.OpenIddict.API.Models;
-using Volo.Authentication.OpenIddict.API.Options;
+﻿using Volo.Authentication.OpenIddict.API.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Validation.AspNetCore;
 using System.Text;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using System.Text.Json;
+using Volo.Authentication.OpenIddict.API.Services;
 
 namespace Volo.Authentication.OpenIddict.API.Controllers
 {
@@ -17,18 +15,12 @@ namespace Volo.Authentication.OpenIddict.API.Controllers
     [Route("auth")]
     public class AuthenticationController : ControllerBase
     {
-        private readonly Options.AuthenticationOptions _authenticationOptions;
-        private readonly MailingOptions _mailOptions;
-        private readonly IMailingService _mailingService;
+        private readonly IAuthenticationClient _authenticationClient;
 
         public AuthenticationController(
-            IOptions<Options.AuthenticationOptions> authenticationOptions, 
-            IOptions<MailingOptions> mailOptions,
-            IMailingService mailingService)
+            IAuthenticationClient authenticationClient)
         {
-            _authenticationOptions = authenticationOptions.Value;
-            _mailOptions = mailOptions.Value;
-            _mailingService = mailingService;
+            _authenticationClient = authenticationClient;
         }
 
         [HttpGet("account/CurrentUser")]
@@ -69,49 +61,20 @@ namespace Volo.Authentication.OpenIddict.API.Controllers
                 return BadRequest(ModelState);
             }
 
-            HttpClient client = new HttpClient();
-            
             var token = Request.Headers["Authorization"].ToString();
-            
-            HttpRequestMessage request = new()
-            {
-                RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/InviteUser"),
-                Method = new(HttpMethods.Post),
-                Content = new StringContent(JsonSerializer.Serialize(model, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json")
-            };
-
-            request.Headers.Add("Authorization", token);
-
-            var response = await client.SendAsync(request);
+           
+            var response = await _authenticationClient.InviteUser(new StringContent(JsonSerializer.Serialize(model, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json"), token);
 
             if (response.IsSuccessStatusCode)
             {
-                //Email or other method to send the token
-                var responseObject = JsonSerializer.Deserialize<InviteUserResponseModel>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true});
-
-                string mailContent = _mailOptions.EnvironmentUri + _mailOptions.RegisterEndpoint + "?" + $"token={responseObject.Token}&email={responseObject.Email}&type={responseObject.Type}&role={responseObject.Role}";
-
-                var sendEmailModel = new SendEmailModel()
-                {
-                    FromEmail = _mailOptions.FromEmail,
-                    FromName = _mailOptions.FromName,
-                    PlainTextMessage = mailContent,
-                    HtmlTextMessage = string.Empty,
-                    Subject = "invite user test",
-                    ToEmail = responseObject.Email,
-                    ToName = responseObject.Email
-                };
-
-                var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
-
                 var content = new ResponseModel<bool>()
                 {
-                    Code = mailResponse.IsSuccess ? 200 : 400,
-                    Message = mailResponse.IsSuccess ? "mail is sent" : "failed to send email",
-                    Data = mailResponse.IsSuccess,
+                    Code = 200,
+                    Message = "mail is sent",
+                    Data = true,
                 };
 
-                return mailResponse.IsSuccess ? Ok(content) : BadRequest(content);
+                return Ok(content);
             }
             else
             {
