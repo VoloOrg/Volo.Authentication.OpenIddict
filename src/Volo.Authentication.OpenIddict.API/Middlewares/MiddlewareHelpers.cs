@@ -13,8 +13,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 HttpOnly = true,
                 Secure = true,
                 IsEssential = true,
-                SameSite = SameSiteMode.Lax,
-                Domain = "authentication-openiddict-api.azurewebsites.net"
+                SameSite = SameSiteMode.Lax
             };
             httpResponse.Cookies.Delete("access_token", options);
             httpResponse.Cookies.Delete("refresh_token", options);
@@ -28,8 +27,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 Secure = true, 
                 IsEssential = true, 
                 SameSite = SameSiteMode.Lax, 
-                Expires = DateTime.UtcNow.AddMinutes(3600),
-                Domain = "authentication-openiddict-api.azurewebsites.net"
+                Expires = DateTime.UtcNow.AddMinutes(3600)
             };
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
