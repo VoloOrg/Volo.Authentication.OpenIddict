@@ -34,7 +34,7 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
             }
             else
             {
-                await GenerateResponse(context.Response, false, 200, "Not valid token");
+                await GenerateResponse(context.Response, false, 400, "Not valid token");
             }
         }
     }
