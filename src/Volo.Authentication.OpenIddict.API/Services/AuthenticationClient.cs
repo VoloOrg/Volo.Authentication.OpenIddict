@@ -25,7 +25,7 @@ namespace Volo.Authentication.OpenIddict.API.Services
         {
             HttpRequestMessage request = new()
             {
-                RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "connect/logout"),
+                RequestUri = new Uri(_authenticationOptions.AuthenticationUrl + "account/logout"),
                 Method = new(HttpMethods.Get)
             };
 

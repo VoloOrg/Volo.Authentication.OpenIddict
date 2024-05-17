@@ -7,8 +7,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using Microsoft.AspNetCore.Authorization;
-using OpenIddict.Validation.AspNetCore;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Volo.Authentication.OpenIddict.Extentions;
 using Volo.Authentication.OpenIddict.Models;
@@ -156,38 +154,6 @@ namespace Volo.Authentication.OpenIddict.Controllers
             throw new NotImplementedException("The specified grant type is not implemented.");
         }
 
-
-        [HttpGet]
-        [Route("connect/logout")]
-        [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> Logout()
-        {
-            bool output = false;
-            var email = HttpContext.User.GetClaim("email");
-
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                var properties = new AuthenticationProperties(new Dictionary<string, string>
-                {
-                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                        "The username/password couple is invalid."
-                });
-
-                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            }
-            
-            var task = _signInManager.SignOutAsync();
-            if (task.IsCompletedSuccessfully)
-            {
-                output = true;
-                await _signInManager.SignOutAsync();
-                SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            }
-
-            return output ? Ok() : BadRequest();
-        }
 
         [HttpPost]
         [Route("connect/ForgotPassword")]

@@ -8,6 +8,7 @@ using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddictAbstraction = OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using AspNet.Security.OpenIdConnect.Extensions;
 
 namespace Volo.Authentication.OpenIddict.Controllers
 {
@@ -15,14 +16,17 @@ namespace Volo.Authentication.OpenIddict.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly SignInManager<IdentityUser> _signInManager;
         private static bool _databaseChecked;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
-            ApplicationDbContext applicationDbContext)
+            ApplicationDbContext applicationDbContext,
+            SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
             _applicationDbContext = applicationDbContext;
+            _signInManager = signInManager;
         }
 
         
@@ -193,6 +197,37 @@ namespace Volo.Authentication.OpenIddict.Controllers
             return BadRequest();
         }
 
+        [HttpGet]
+        [Route("Account/logout")]
+        [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> Logout()
+        {
+            bool output = false;
+            var email = HttpContext.User.GetClaim("email");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                var properties = new AuthenticationProperties(new Dictionary<string, string>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                        "The username/password couple is invalid."
+                });
+
+                return Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            var task = _signInManager.SignOutAsync();
+            if (task.IsCompletedSuccessfully)
+            {
+                output = true;
+                await _signInManager.SignOutAsync();
+                SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            return output ? Ok() : BadRequest();
+        }
 
         #region Helpers
 
