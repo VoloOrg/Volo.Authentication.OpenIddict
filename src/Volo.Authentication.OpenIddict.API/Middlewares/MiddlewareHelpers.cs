@@ -13,7 +13,8 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 HttpOnly = true,
                 Secure = true,
                 IsEssential = true,
-                SameSite = SameSiteMode.None
+                SameSite = SameSiteMode.Strict,
+                Domain = ".azurewebsites.net"
             };
             httpResponse.Cookies.Delete("access_token", options);
             httpResponse.Cookies.Delete("refresh_token", options);
@@ -21,7 +22,15 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
 
         public static void AppendCookies(HttpResponse httpResponse, string accessToken, string refreshToken)
         {
-            var options = new CookieOptions() { HttpOnly = true, Secure = true, IsEssential = true, SameSite = SameSiteMode.None, Expires = DateTime.UtcNow.AddMinutes(3600) };
+            var options = new CookieOptions() 
+            { 
+                HttpOnly = true, 
+                Secure = true, 
+                IsEssential = true, 
+                SameSite = SameSiteMode.Strict, 
+                Expires = DateTime.UtcNow.AddMinutes(3600),
+                Domain = ".azurewebsites.net"
+            };
             httpResponse.Cookies.Append("access_token", accessToken, options);
             httpResponse.Cookies.Append("refresh_token", refreshToken, options);
         }
