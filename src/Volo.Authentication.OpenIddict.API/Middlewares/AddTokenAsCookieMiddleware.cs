@@ -70,7 +70,8 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 }
                 else
                 {
-                    await GenerateResponse(context.Response, string.Empty, 401, await response.Content.ReadAsStringAsync());
+                    await GenerateResponse(context.Response, string.Empty, 401, "Unauthorized attempt, log in again");
+                    return;
                 }
             }
 

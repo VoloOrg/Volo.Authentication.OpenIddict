@@ -110,8 +110,8 @@ namespace Volo.Authentication.OpenIddict
 
                     // Register the signing and encryption credentials.
                     //options.AddDevelopmentEncryptionCertificate();
-                    options.AddDevelopmentSigningCertificate();
-                    //options.AddEphemeralSigningKey();
+                    //options.AddDevelopmentSigningCertificate();
+                    options.AddEphemeralSigningKey();
 
 
                     // Disables access token body encryption
