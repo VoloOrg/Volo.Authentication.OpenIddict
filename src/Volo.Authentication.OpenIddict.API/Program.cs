@@ -68,6 +68,8 @@ namespace Volo.Authentication.OpenIddict.API
 
             //add services
             builder.Services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
+            //important : for development purposes, cookie samesite setting is NONE for development environment,
+            //and STRICT for the rest.
             builder.Services.AddSingleton<ICookieService, CookieService>();
 
             var app = builder.Build();
