@@ -13,15 +13,18 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
         private readonly RequestDelegate _next;
         private readonly AppInfoOptions _appInfoOptions;
         private readonly IAuthenticationClient _authenticationClient;
+        private readonly ICookieService _cookieService;
 
         public TokenMiddleware(
             RequestDelegate next,
             IOptions<AppInfoOptions> appInfoOptions,
-            IAuthenticationClient authenticationClient)
+            IAuthenticationClient authenticationClient,
+            ICookieService cookieService)
         {
             _next = next;
             _appInfoOptions = appInfoOptions.Value;
             _authenticationClient = authenticationClient;
+            _cookieService = cookieService;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -57,8 +60,8 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
                 var token = responceJson["access_token"].ToString();
                 var refreshToken = responceJson["refresh_token"].ToString();
 
-                DeleteCookies(context.Response);
-                AppendCookies(context.Response, token, refreshToken);
+                _cookieService.DeleteCookies(context.Response);
+                _cookieService.AppendCookies(context.Response, token, refreshToken);
 
                 await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
             }

@@ -7,13 +7,16 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly IAuthenticationClient _authenticationClient;
+        private readonly ICookieService _cookieService;
 
         public LogoutMiddleware(
             RequestDelegate next,
-            IAuthenticationClient authenticationClient)
+            IAuthenticationClient authenticationClient,
+            ICookieService cookieService)
         {
             _next = next;
             _authenticationClient = authenticationClient;
+            _cookieService = cookieService;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -24,12 +27,12 @@ namespace Volo.Authentication.OpenIddict.API.Middlewares
 
             if (response.IsSuccessStatusCode)
             {
-                DeleteCookies(context.Response);
+                _cookieService.DeleteCookies(context.Response);
                 await GenerateResponse(context.Response, string.Empty, 200, string.Empty);
             }
             else
             {
-                DeleteCookies(context.Response);
+                _cookieService.DeleteCookies(context.Response);
                 await GenerateResponse(context.Response, string.Empty, 200, await response.Content.ReadAsStringAsync());
             }
 

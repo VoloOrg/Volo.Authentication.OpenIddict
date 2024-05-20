@@ -64,6 +64,7 @@ namespace Volo.Authentication.OpenIddict.API
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
+            builder.Services.AddSingleton<ICookieService, CookieService>();
 
             var app = builder.Build();
 
