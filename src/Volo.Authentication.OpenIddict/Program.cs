@@ -25,6 +25,7 @@ namespace Volo.Authentication.OpenIddict
 
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            // add db for Identity user and role
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 {
                     // Configure Entity Framework Core to use Microsoft SQL Server.
@@ -34,12 +35,14 @@ namespace Volo.Authentication.OpenIddict
                     options.UseOpenIddict();
                 });
 
+            //add Identity with configurations
             builder.Services
                 .AddIdentity<IdentityUser, IdentityRole>(o =>
                 {
-                    o.Lockout.MaxFailedAccessAttempts = 2;
+                    o.Lockout.MaxFailedAccessAttempts = 5;
                     o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                     o.Lockout.AllowedForNewUsers = true;
+                    //important
                     o.User.RequireUniqueEmail = true;
                 })
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -60,6 +63,8 @@ namespace Volo.Authentication.OpenIddict
             // Register the Quartz.NET service and configure it to block shutdown until jobs are complete.
             builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
+
+            //openIddict service
             builder.Services.AddOpenIddict()
                 // Register the OpenIddict core components.
                 .AddCore(options => 
@@ -111,7 +116,7 @@ namespace Volo.Authentication.OpenIddict
 
 
 
-                    // Register the signing and encryption credentials.
+                    // Register the signing and encryption credentials. Add your key.
                     //options.AddDevelopmentEncryptionCertificate();
                     //options.AddDevelopmentSigningCertificate();
                     options.AddEphemeralSigningKey();
@@ -125,6 +130,7 @@ namespace Volo.Authentication.OpenIddict
                     .EnableTokenEndpointPassthrough()
                     .DisableTransportSecurityRequirement(); // During development, you can disable the HTTPS requirement.;
                 })
+                //adds validation for controllers
                 .AddValidation(options =>
                 {
                     // Import the configuration from the local OpenIddict server instance.
@@ -138,11 +144,13 @@ namespace Volo.Authentication.OpenIddict
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            //meiling service for forget password and invite user
             builder.Services.AddSendGrid(cfg => builder.Configuration.GetSection(nameof(SendGridClientOptions)).Bind(cfg));
             builder.Services.Configure<MailingOptions>(
                     builder.Configuration.GetSection(MailingOptions.Section));
             builder.Services.AddSingleton<IMailingService, MailingService>();
 
+            //client seeder to the db
             builder.Services.AddHostedService<ClientSeeder>();
 
             builder.Services.AddAuthorization();

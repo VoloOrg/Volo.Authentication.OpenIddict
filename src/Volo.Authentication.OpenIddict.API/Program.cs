@@ -17,7 +17,9 @@ namespace Volo.Authentication.OpenIddict.API
             builder.Services.AddControllers()
                 .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
+            //openiddict service
             builder.Services.AddOpenIddict()
+                //validation part to authorize
                 .AddValidation(options =>
                 {
                     // Note: the validation handler uses OpenID Connect discovery
@@ -41,6 +43,7 @@ namespace Volo.Authentication.OpenIddict.API
                     options.UseAspNetCore();
                 });
 
+            //add options
             builder.Services.Configure<AuthenticationOptions>(
                     builder.Configuration.GetSection(AuthenticationOptions.Section));
             
@@ -63,6 +66,7 @@ namespace Volo.Authentication.OpenIddict.API
             builder.Services.AddAuthorization();
             builder.Services.AddSwaggerGen();
 
+            //add services
             builder.Services.AddHttpClient<IAuthenticationClient, AuthenticationClient>();
             builder.Services.AddSingleton<ICookieService, CookieService>();
 
