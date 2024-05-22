@@ -103,7 +103,22 @@ namespace Volo.Authentication.OpenIddict.Controllers
                     {
                         var token = await _userManager.GenerateUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, type);
 
-                        return new JsonResult(new InviteUserResponseModel() { Token = token, Email = model.Email, Role = model.Role, Type = type });
+                        string mailContent = _mailOptions.EnvironmentUri + _mailOptions.RegisterEndpoint + "?" + $"token={token}&email={model.Email}&type={type}&role={model.Role}";
+
+                        var sendEmailModel = new SendEmailModel()
+                        {
+                            FromEmail = _mailOptions.FromEmail,
+                            FromName = _mailOptions.FromName,
+                            PlainTextMessage = mailContent,
+                            HtmlTextMessage = string.Empty,
+                            Subject = "invite user test",
+                            ToEmail = model.Email,
+                            ToName = model.Email
+                        };
+
+                        var mailResponse = await _mailingService.SendEmailAsync(sendEmailModel, CancellationToken.None);
+
+                        return mailResponse.IsSuccess ? Ok() : BadRequest();
                     }
                 }
                 else
